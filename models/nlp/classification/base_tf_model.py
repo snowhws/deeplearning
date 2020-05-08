@@ -22,6 +22,7 @@ class BaseTFModel(object):
         self.lr = Utils.default_dict(self.config, "learning_rate", 1e-4)                # 学习率
         self.emb_size = Utils.default_dict(self.config, "emb_size", 128)                # embedding维数
         self.cls_num = Utils.default_dict(self.config, "cls_num", 2)                    # 类目个数
+        self.max_seq_len = Utils.default_dict(self.config, "max_seq_len", 1024)         # 句子最大长度
         self.cls_type = Utils.default_dict(self.config, "classifier_type",
                                            "multi-class-dense")                         # 分类器类型
         self.opt = Utils.default_dict(self.config, "optimization", "adam")              # 优化器 
@@ -43,6 +44,12 @@ class BaseTFModel(object):
         self.logits = None                                                              # 输出
         self.predictions = None                                                         # 预测结果
         self.saver = None                                                               # 保存器: checkpoint模型
+    
+    def layer(self):
+        """经过当前模型后的隐层表示
+        子类实现
+        """
+        raise NotImplementedError
         
     def cal_loss(self):
         """计算损失
@@ -127,13 +134,8 @@ class BaseTFModel(object):
             predictions = tf.cast(self.logits, tf.float32, name="predictions")
         elif self.cls_type == "multi-class-dense" or \
             self.cls_type == "multi-class-sparse":
-            predictions = tf.argmax(self.logits, axis=0, name="predictions")
+            predictions = tf.argmax(self.logits, axis=1, name="predictions")
         return predictions
-
-    def build_model(self):
-        """创建模型: 子类实现
-        """
-        raise NotImplementedError
 
     def init_saver(self):
         """初始化saver对象
@@ -161,6 +163,15 @@ class BaseTFModel(object):
                                                  feed_dict=feed_dict)
         
         return summary, loss, predictions
+        
+    def accuracy(self):
+        '''
+        '''
+        with tf.name_scope("accuracy"):
+            correct_predictions = tf.equal(self.predictions, tf.argmax(self.input_y, 1))
+            accuracy = tf.reduce_mean(tf.cast(correct_predictions, "float"), name="accuracy")
+            
+            return accuracy
 
     def eval(self, sess, batch):
         """验证

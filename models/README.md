@@ -4,8 +4,10 @@
 
 1. TextCNN模型
 	
+	
+	
+	参考资料：
 
-参考资料：
 <div id="refer-anchor-1"></div>
 -  [1] [Convolutional Neural Networks for Sentence Classification](https://arxiv.org/abs/1408.5882 "Convolutional Neural Networks for Sentence Classification")
 <div id="refer-anchor-2"></div>
