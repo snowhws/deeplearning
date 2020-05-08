@@ -3,6 +3,7 @@
 # @author wensong
 
 import tensorflow as tf
+import numpy as np
 
 class Utils(object):
     '''工具类

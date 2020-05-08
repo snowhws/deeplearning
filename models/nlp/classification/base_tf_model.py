@@ -9,20 +9,30 @@ class BaseTFModel(object):
     子类则focus在模型实现上。
     '''
 
-    def __init__(self, config, vocab_size=None, word_vectors=None):
+    def __init__(self, config, vocab_size=None, pretrain_word_vecs=None):
         """
         Args:
             config: 模型配置参数（词典类型），包含learning_rate、classifier_type等参数
             vocab_size: 词向量为空时，使用vocab_size来初始化词向量
-            word_vectors：预训练好的词向量
-            word_vectors 和 vocab_size必须有一个不为None
+            pretrain_word_vecs：预训练词向量
+            pretrain_word_vecs 和 vocab_size必须有一个不为None
         """
+        # get config params
         self.config = config                                                            # 词典结构的配置
+        self.lr = Utils.default_dict(self.config, "learning_rate", 1e-4)                # 学习率
+        self.emb_size = Utils.default_dict(self.config, "emb_size", 128)                # embedding维数
+        self.cls_num = Utils.default_dict(self.config, "cls_num", 2)                    # 类目个数
+        self.cls_type = Utils.default_dict(self.config, "classifier_type",
+                                           "multi-class-dense")                         # 分类器类型
+        self.opt = Utils.default_dict(self.config, "optimization", "adam")              # 优化器 
+        self.max_grad_norm = Utils.default_dict(self.config, 
+                                                "max_grad_norm", 5.0)                   # 梯度截取率 
+        self.l2_reg_lambda = Utils.default_dict(self.config, "l2_reg_lambda", 0.0)      # l2正则比例
+        # set params
         self.vocab_size = vocab_size                                                    # 词表大小
-        self.word_vectors = word_vectors                                                # 支持预训练词向量                    
+        self.pretrain_word_vecs = pretrain_word_vecs                                    # 支持预训练词向量                    
         self.input_x = tf.placeholder(tf.int32, [None, None], name="input_x")           # 输入二维张量
-        self.input_y = tf.placeholder(tf.float32,                                       
-                                      [None, self.config["num_classes"]], 
+        self.input_y = tf.placeholder(tf.float32, [None, self.cls_num], 
                                       name="input_y")                                   # 标签
         self.keep_prob = tf.placeholder(tf.float32, name="keep_prob")                   # 激活概率
 
@@ -34,14 +44,6 @@ class BaseTFModel(object):
         self.predictions = None                                                         # 预测结果
         self.saver = None                                                               # 保存器: checkpoint模型
         
-        # configs
-        self.lr = Utils.default_dict(self.config, "learning_rate", 1e-4)                # 学习率
-        self.cls_type = Utils.default_dict(self.config, "classifier_type",
-                                           "multi-class-dense")                         # 分类器类型
-        self.opt = Utils.default_dict(self.config, "optimization", "adam")              # 优化器 
-        self.max_grad_norm = Utils.default_dict(self.config, 
-                                                "max_grad_norm", 5.0)                   # 梯度截取率 
-
     def cal_loss(self):
         """计算损失
         支持Mult-Label和Multi-Class
