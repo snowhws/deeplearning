@@ -64,55 +64,6 @@ class BaseTFModel(object):
         '''
         raise NotImplementedError
 
-    def softmax_layer(self, input_layer):
-        '''softmax层
-        '''
-        with tf.name_scope("fc_output_layer"):
-            W = tf.get_variable(
-                "W",
-                shape=[input_layer.get_shape()[1], self.cls_num],
-                initializer=tf.contrib.layers.xavier_initializer())
-            b = tf.get_variable('b',
-                                shape=[self.cls_num],
-                                initializer=tf.constant_initializer(0.1))
-            if self.mode == "train":
-                self.l2_loss += tf.nn.l2_loss(W)
-                self.l2_loss += tf.nn.l2_loss(b)
-            self.logits = tf.nn.xw_plus_b(input_layer, W, b, name="logits")
-            self.predictions = tf.nn.softmax(self.logits)
-            self.results = self.get_results()
-
-        # loss
-        if self.mode == "train":
-            self.loss = self.cal_loss() + self.l2_reg_lambda * self.l2_loss
-
-    def cal_loss(self):
-        '''计算损失
-        支持Mult-Label和Multi-Class
-
-        Returns:
-            返回loss均值
-        '''
-        with tf.name_scope("loss"):
-            losses = 0.0
-            if self.cls_type == "multi-label":
-                # 多个二分类sigmoid实现multi-label
-                losses = tf.nn.sigmoid_cross_entropy_with_logits(
-                    logits=self.logits, labels=self.input_y)
-            elif self.cls_type == "multi-class-dense":
-                # label为稠密概率分布
-                losses = tf.nn.softmax_cross_entropy_with_logits(
-                    logits=self.logits, labels=self.input_y)
-            elif self.cls_type == "multi-class-sparse":
-                # label为稀疏标签
-                labels = Utils.nonzero_indices(tf.input_y)
-                losses = tf.nn.sparse_softmax_cross_entropy_with_logits(
-                    logits=self.logits, labels=labels[0])
-            # 均值计算
-            loss = tf.reduce_mean(losses)
-
-            return loss
-
     def get_optimizer(self, lr=1e-5):
         '''获取优化器
 

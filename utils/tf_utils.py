@@ -5,7 +5,7 @@
 import tensorflow as tf
 import numpy as np
 
-class Utils(object):
+class TFUtils(object):
     '''工具类
     '''
     
