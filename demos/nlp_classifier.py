@@ -7,103 +7,18 @@ import sys
 sys.path.append(os.getcwd() + "/../")
 from utils.tf_utils import TFUtils
 import tensorflow as tf
-from tensorflow.contrib import learn
 import numpy as np
 import time
 import datetime
+from executes.executor import Executor
+from executes.init_processor import InitProcessor
+from executes.pre_processor import PreProcessor
+from executes.build_processor import BuildProcessor
+from executes.train_processor import TrainProcessor
 from models.nlp.classification.tf_bilstmatt_classifier import TFBILSTMATTClassifier
 from models.nlp.classification.tf_textcnn_classifier import TFTextCNNClassifier
 
-
-def init():
-    '''初始化参数，使用tf的flags定义
-    '''
-    # 当前路径
-    current_path = os.getcwd()
-    # 样本集合相关参数
-    tf.flags.DEFINE_float(
-        "dev_sample_percentage", .1,
-        "Percentage of the training data to use for validation")
-    tf.flags.DEFINE_string(
-        "positive_data_file",
-        current_path + "../corpus/rt-polaritydata/rt-polarity.pos",
-        "Data source for the positive data.")
-    tf.flags.DEFINE_string(
-        "negative_data_file",
-        current_path + "../corpus/rt-polaritydata/rt-polarity.neg",
-        "Data source for the negative data.")
-    # 分类器公共参数
-    tf.flags.DEFINE_integer("emb_size", 128,
-                            "Dimensionality of word embedding (default: 128)")
-    tf.flags.DEFINE_integer("max_seq_len", 1024,
-                            "max len of input seq(default: 1024)")
-    # TextCNN相关参数
-    tf.flags.DEFINE_string("filter_sizes", "2,3,4,5",
-                           "TextCNN filter sizes (default: '2,3,4,5')")
-    tf.flags.DEFINE_integer(
-        "num_filters", 128, "Number of filters per filter size (default: 128)")
-    # 训练相关参数
-    tf.flags.DEFINE_integer("batch_size", 64, "Batch Size (default: 64)")
-    tf.flags.DEFINE_integer("num_epochs", 100,
-                            "Number of training epochs (default: 100)")
-    tf.flags.DEFINE_float("keep_prob", 0.5,
-                          "Dropout keep probability (default: 0.5)")
-    tf.flags.DEFINE_float("l2_reg_lambda", 0.0,
-                          "L2 regularization lambda (default: 0.0)")
-    tf.flags.DEFINE_integer(
-        "evaluate_every", 100,
-        "Evaluate model on dev set after this many steps (default: 100)")
-    tf.flags.DEFINE_integer("checkpoint_every", 100,
-                            "Save model after this many steps (default: 100)")
-    tf.flags.DEFINE_integer("num_checkpoints", 5,
-                            "Number of checkpoints to store (default: 5)")
-    #  设备及日志相关
-    tf.flags.DEFINE_boolean(
-        "allow_soft_placement", True,
-        "Allow device soft device placement")  # 如果指定设备不存在，tf自动分配设备
-    tf.flags.DEFINE_boolean("log_device_placement", False,
-                            "Log placement of ops on devices")  # 是否打印备份日志
-
-
-# 命令行参数
-init()
-FLAGS = tf.flags.FLAGS
-
-
-def preprocess():
-    # Data Preparation
-    # ==================================================
-    # Load data
-    print("Loading data...")
-    x_text, y = data_helpers.load_data_and_labels(FLAGS.positive_data_file,
-                                                  FLAGS.negative_data_file)
-
-    # Build vocabulary
-    # max_document_length = max([len(x.split(" ")) for x in x_text])
-    max_document_length = FLAGS.sequence_lens
-    vocab_processor = learn.preprocessing.VocabularyProcessor(
-        max_document_length)
-    x = np.array(list(vocab_processor.fit_transform(x_text)))
-
-    # Randomly shuffle data
-    np.random.seed(10)
-    shuffle_indices = np.random.permutation(np.arange(len(y)))
-    x_shuffled = x[shuffle_indices]
-    y_shuffled = y[shuffle_indices]
-
-    # Split train/test set
-    # TODO: This is very crude, should use cross-validation
-    dev_sample_index = -1 * int(FLAGS.dev_sample_percentage * float(len(y)))
-    x_train, x_dev = x_shuffled[:dev_sample_index], x_shuffled[
-        dev_sample_index:]
-    y_train, y_dev = y_shuffled[:dev_sample_index], y_shuffled[
-        dev_sample_index:]
-
-    del x, y, x_shuffled, y_shuffled
-
-    print("Vocabulary Size: {:d}".format(len(vocab_processor.vocabulary_)))
-    print("Train/Dev split: {:d}/{:d}".format(len(y_train), len(y_dev)))
-    return x_train, y_train, vocab_processor, x_dev, y_dev
+TASK_NAME = "TextCNN"
 
 
 def init_model(x_train,
@@ -290,8 +205,15 @@ def train(x_train, y_train, vocab_processor, x_dev, y_dev):
 
 
 def main(argv=None):
-    x_train, y_train, vocab_processor, x_dev, y_dev = preprocess()
-    train(x_train, y_train, vocab_processor, x_dev, y_dev)
+    # 定义执行器
+    exe = Executor(TASK_NAME)
+    # 添加processor
+    exe.add_processor(InitProcessor())  # 参数初始化
+    exe.add_processor(PreProcessor())  # 样本预处理
+    exe.add_processor(BuildProcessor())  # 创建模型
+    exe.add_processor(TrainProcessor())  # 训练
+    # 执行
+    exe.run()
 
 
 if __name__ == '__main__':
