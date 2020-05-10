@@ -3,7 +3,7 @@
 # @author: wensong
 
 import tensorflow as tf
-from .tf_base_layer import TFBaseLayer
+from tf_base_layer import TFBaseLayer
 
 
 class TFTextCNNLayer(TFBaseLayer):
@@ -28,7 +28,7 @@ class TFTextCNNLayer(TFBaseLayer):
         self.filter_sizes = filter_sizes
         self.num_filters = num_filters
 
-    def layer(self):
+    def build(self):
         '''TextCNN Layer层
 
         Returns:

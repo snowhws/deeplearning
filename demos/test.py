@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 # @Author: wensong
 
+import os
 import sys
-sys.path.append("../")
+sys.path.append(os.getcwd() + "/../")
 from utils.tf_utils import TFUtils
 
 
@@ -15,7 +16,7 @@ def run():
         if not line:
             break
         print line
-        print TFUtils.clean_str(line)
+        print TFUtils.preprocess(line)
         print "================"
 
 

@@ -2,9 +2,12 @@
 # -*- coding: utf-8 -*-
 # @Author: wensong
 
-from ..utils.tf_utils import TFUtils
+import os
+import sys
+sys.path.append(os.getcwd() + "/../")
+from utils.tf_utils import TFUtils
 import tensorflow as tf
-from .tf_base_layer import TFBaseLayer
+from tf_base_layer import TFBaseLayer
 
 
 class TFClassifierLayer(TFBaseLayer):
@@ -31,7 +34,7 @@ class TFClassifierLayer(TFBaseLayer):
         self.input_y = input_y
         self.predictions = None
 
-    def layer(self):
+    def build(self):
         '''分类层，分训练模式与推理模式
 
         Returns:

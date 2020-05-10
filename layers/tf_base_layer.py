@@ -2,7 +2,10 @@
 #-*- coding:utf8 -*-
 # @Author: wensong
 
-from ....utils.tf_utils import Utils
+import os
+import sys
+sys.path.append(os.getcwd() + "/../")
+from utils.tf_utils import TFUtils
 import tensorflow as tf
 
 
@@ -14,7 +17,7 @@ class TFBaseLayer(object):
         '''
         pass
 
-    def layer(self):
+    def build(self):
         '''层具体实现交给子类完成
         '''
         raise NotImplementedError

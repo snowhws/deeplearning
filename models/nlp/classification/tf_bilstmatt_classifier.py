@@ -2,18 +2,24 @@
 # -*- coding: utf-8 -*-
 # @Author: wensong
 
-from ....utils.tf_utils import Utils
+import os
+import sys
+sys.path.append(os.getcwd() + "/../../")
 import tensorflow as tf
-from .tf_base_classifier import TFBaseClassifier
-from ....layers.tf_embedding_layer import TFEmbeddingLayer
-from ....layers.tf_bilstm_att_layer import TFBILSTMAttLayer
-from ....layers.tf_classifier_layer import TFClassifierLayer
+from tf_base_classifier import TFBaseClassifier
+from layers.tf_embedding_layer import TFEmbeddingLayer
+from layers.tf_bilstm_att_layer import TFBILSTMAttLayer
+from layers.tf_classifier_layer import TFClassifierLayer
 
 
 class TFBILSTMATTClassifier(TFBaseClassifier):
     '''BILSTM-ATTENTION分类器
     '''
-    def __init__(self, config, hidden_sizes, attention_size, vocab_size=None, 
+    def __init__(self,
+                 config,
+                 hidden_sizes,
+                 attention_size,
+                 vocab_size=None,
                  pretrain_word_vecs=None):
         '''
         Args:
@@ -24,7 +30,7 @@ class TFBILSTMATTClassifier(TFBaseClassifier):
             pretrain_word_vecs：预训练词向量
         '''
         # 初始化基类
-        TFBaseClassifier.__init__(self, config, vocab_size, pretrain_word_vecs)    
+        TFBaseClassifier.__init__(self, config, vocab_size, pretrain_word_vecs)
         # 此分类器参数
         self.hidden_sizes = hidden_sizes
         self.attention_size = attention_size
@@ -32,10 +38,12 @@ class TFBILSTMATTClassifier(TFBaseClassifier):
     def build_model(self):
         '''构建模型
         '''
-        embedding_layer = TFEmbeddingLayer(self.input_x, self.vocab_size, 
-                                           self.emb_size, self.pretrain_word_vecs)
-        bilstmatt_layer = TFBILSTMAttLayer(embedding_layer, self.hidden_sizes, 
-                                       self.attention_size, self.keep_prob)
-        self.predictions = TFClassifierLayer(self.mode, bilstmatt_layer, 
-                                             self.cls_num, self.cls_type, self.input_y)
-        
+        embedding_layer = TFEmbeddingLayer(self.input_x, self.vocab_size,
+                                           self.emb_size,
+                                           self.pretrain_word_vecs).build()
+        bilstmatt_layer = TFBILSTMAttLayer(embedding_layer, self.hidden_sizes,
+                                           self.attention_size,
+                                           self.keep_prob).build()
+        self.predictions = TFClassifierLayer(self.mode, bilstmatt_layer,
+                                             self.cls_num, self.cls_type,
+                                             self.input_y).build()

@@ -2,18 +2,24 @@
 # -*- coding: utf-8 -*-
 # @Author: wensong
 
-from ....utils.tf_utils import Utils
+import os
+import sys
+sys.path.append(os.getcwd() + "/../../")
 import tensorflow as tf
-from .tf_base_classifier import TFBaseClassifier
-from ....layers.tf_embedding_layer import TFEmbeddingLayer
-from ....layers.tf_textcnn_layer import TFTextCNNLayer
-from ....layers.tf_classifier_layer import TFClassifierLayer
+from tf_base_classifier import TFBaseClassifier
+from layers.tf_embedding_layer import TFEmbeddingLayer
+from layers.tf_textcnn_layer import TFTextCNNLayer
+from layers.tf_classifier_layer import TFClassifierLayer
 
 
 class TFTextCNNClassifier(TFBaseClassifier):
     '''TextCNN分类器
     '''
-    def __init__(self, config, filter_sizes, num_filters, vocab_size=None, 
+    def __init__(self,
+                 config,
+                 filter_sizes,
+                 num_filters,
+                 vocab_size=None,
                  pretrain_word_vecs=None):
         '''
         Args:
@@ -24,7 +30,7 @@ class TFTextCNNClassifier(TFBaseClassifier):
             pretrain_word_vecs：预训练词向量
         '''
         # 初始化基类
-        TFBaseClassifier.__init__(self, config, vocab_size, pretrain_word_vecs)    
+        TFBaseClassifier.__init__(self, config, vocab_size, pretrain_word_vecs)
         # 此分类器参数
         self.filter_sizes = filter_sizes
         self.max_seq_len = max_seq_len
@@ -32,10 +38,12 @@ class TFTextCNNClassifier(TFBaseClassifier):
     def build_model(self):
         '''构建模型
         '''
-        embedding_layer = TFEmbeddingLayer(self.input_x, self.vocab_size, 
-                                           self.emb_size, self.pretrain_word_vecs)
-        textcnn_layer = TFTextCNNLayer(embedding_layer, self.max_seq_len, 
-                                       self.filter_sizes, self.num_filters)
-        self.predictions = TFClassifierLayer(self.mode, textcnn_layer, 
-                                             self.cls_num, self.cls_type, self.input_y)
-        
+        embedding_layer = TFEmbeddingLayer(self.input_x, self.vocab_size,
+                                           self.emb_size,
+                                           self.pretrain_word_vecs).build()
+        textcnn_layer = TFTextCNNLayer(embedding_layer, self.max_seq_len,
+                                       self.filter_sizes,
+                                       self.num_filters).build()
+        self.predictions = TFClassifierLayer(self.mode, textcnn_layer,
+                                             self.cls_num, self.cls_type,
+                                             self.input_y).build()

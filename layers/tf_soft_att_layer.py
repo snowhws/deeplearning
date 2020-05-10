@@ -3,7 +3,7 @@
 # @Author: wensong
 
 import tensorflow as tf
-from .tf_base_layer import TFBaseLayer
+from tf_base_layer import TFBaseLayer
 
 
 class TFSoftAttLayer(TFBaseLayer):
@@ -18,13 +18,13 @@ class TFSoftAttLayer(TFBaseLayer):
             attention_size: attention权重矩阵宽度
         '''
         # 父类初始化
-        TFBaseLayer.__init__(self)
+        BaseTFBaseLayer.__init__(self)
         # 当前层参数
         self.in_hidden = in_hidden
         self.in_hidden_size = in_hidden.get_shape()[-1]
         self.attention_size = attention_size
 
-    def layer(self):
+    def build(self):
         """返回soft-attention后的向量表示
         输入Shape为[Batch, TimeStep, In_Hidden_Size]
 

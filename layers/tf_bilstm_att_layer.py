@@ -3,8 +3,8 @@
 # @author: wensong
 
 import tensorflow as tf
-from .tf_base_layer import TFBaseLayer
-from .tf_soft_att_layer import TFSoftAttLayer
+from tf_base_layer import TFBaseLayer
+from tf_soft_att_layer import TFSoftAttLayer
 
 
 class TFBILSTMAttLayer(TFBaseLayer):
@@ -28,7 +28,7 @@ class TFBILSTMAttLayer(TFBaseLayer):
         self.att_size = attention_size
         self.keep_prob = keep_prob
 
-    def layer(self):
+    def build(self):
         '''多层bilstm-attention Layer隐层表示
 
         Returns:

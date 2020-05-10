@@ -1,7 +1,11 @@
 #!/usr/bin/env python
 #-*- coding:utf8 -*-
 # @Author: wensong
-from ....utils.tf_utils import Utils
+
+import os
+import sys
+sys.path.append(os.getcwd() + "/../../")
+from utils.tf_utils import TFUtils
 import tensorflow as tf
 
 
@@ -20,25 +24,26 @@ class TFBaseClassifier(object):
         '''
         # config params
         self.config = config  # 词典结构的配置
-        self.mode = Utils.default_dict(self.config, "mode",
-                                       "train")  # 模式：infer or train
-        self.lr = Utils.default_dict(self.config, "learning_rate", 1e-4)  # 学习率
-        self.emb_size = Utils.default_dict(self.config, "emb_size",
-                                           128)  # embedding维数
-        self.word_emb_trainable = Utils.default_dict(self.config,
-                                                     "word_emb_trainable",
-                                                     True)  # 词向量是否可训练
-        self.cls_num = Utils.default_dict(self.config, "cls_num", 2)  # 类目个数
-        self.max_seq_len = Utils.default_dict(self.config, "max_seq_len",
-                                              1024)  # 句子最大长度
-        self.cls_type = Utils.default_dict(self.config, "classifier_type",
-                                           "multi-class-dense")  # 分类器类型
-        self.opt = Utils.default_dict(self.config, "optimization",
-                                      "adam")  # 优化器
-        self.max_grad_norm = Utils.default_dict(self.config, "max_grad_norm",
-                                                5.0)  # 梯度截取率
-        self.l2_reg_lambda = Utils.default_dict(self.config, "l2_reg_lambda",
-                                                0.0)  # l2正则比例
+        self.mode = TFUtils.default_dict(self.config, "mode",
+                                         "train")  # 模式：infer or train
+        self.lr = TFUtils.default_dict(self.config, "learning_rate",
+                                       1e-4)  # 学习率
+        self.emb_size = TFUtils.default_dict(self.config, "emb_size",
+                                             128)  # embedding维数
+        self.word_emb_trainable = TFUtils.default_dict(self.config,
+                                                       "word_emb_trainable",
+                                                       True)  # 词向量是否可训练
+        self.cls_num = TFUtils.default_dict(self.config, "cls_num", 2)  # 类目个数
+        self.max_seq_len = TFUtils.default_dict(self.config, "max_seq_len",
+                                                1024)  # 句子最大长度
+        self.cls_type = TFUtils.default_dict(self.config, "classifier_type",
+                                             "multi-class-dense")  # 分类器类型
+        self.opt = TFUtils.default_dict(self.config, "optimization",
+                                        "adam")  # 优化器
+        self.max_grad_norm = TFUtils.default_dict(self.config, "max_grad_norm",
+                                                  5.0)  # 梯度截取率
+        self.l2_reg_lambda = TFUtils.default_dict(self.config, "l2_reg_lambda",
+                                                  0.0)  # l2正则比例
 
         # model params
         self.vocab_size = vocab_size  # 词表大小
@@ -152,8 +157,7 @@ class TFBaseClassifier(object):
 
         # 运行会话
         _, summary, loss, predictions = sess.run(
-            [self.train_op, self.summary_op, self.loss],
-            feed_dict=feed_dict)
+            [self.train_op, self.summary_op, self.loss], feed_dict=feed_dict)
 
         return summary, loss
 

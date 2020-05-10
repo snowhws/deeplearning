@@ -3,7 +3,7 @@
 # @Author: wensong
 
 import tensorflow as tf
-from .tf_base_layer import TFBaseLayer
+from tf_base_layer import TFBaseLayer
 
 
 class TFEmbeddingLayer(TFBaseLayer):
@@ -31,7 +31,7 @@ class TFEmbeddingLayer(TFBaseLayer):
         self.pretrain_word_vecs = pretrain_word_vecs
         self.word_emb_trainable = word_emb_trainable
 
-    def layer(self):
+    def build(self):
         '''embedding layer
         '''
         # 词嵌入层
