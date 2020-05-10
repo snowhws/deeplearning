@@ -3,10 +3,10 @@
 # @Author: wensong
 
 import tensorflow as tf
-from .base_tf_layer import BaseTFLayer
+from .tf_base_layer import TFBaseLayer
 
 
-class TFEmbeddingLayer(BaseTFLayer):
+class TFEmbeddingLayer(TFBaseLayer):
     '''word->embedding层的封装，支持传入预训练word_emb
     '''
     def __init__(self,
@@ -24,6 +24,7 @@ class TFEmbeddingLayer(BaseTFLayer):
             pretrain_word_vecs: 预训练词向量
             word_emb_trainable: 预训练词向量是否可update
         '''
+        TFBaseLayer.__init__()
         self.input_x = input_x
         self.vocab_size = vocab_size
         self.emb_size = emb_size
@@ -50,7 +51,6 @@ class TFEmbeddingLayer(BaseTFLayer):
             # 查询词嵌入矩阵
             # 将输入词索引转成词向量
             # 输出shape：[batch_size, seq_len, emb_size]
-            self.output = tf.nn.embedding_lookup(
-                embedding, self.input_x)
+            self.output = tf.nn.embedding_lookup(embedding, self.input_x)
 
             return self.output

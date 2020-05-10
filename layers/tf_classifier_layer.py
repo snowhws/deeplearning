@@ -4,21 +4,16 @@
 
 from ..utils.tf_utils import TFUtils
 import tensorflow as tf
-from .base_tf_layer import BaseTFLayer
+from .tf_base_layer import TFBaseLayer
 
 
-class TFClassifierLayer(BaseTFLayer):
+class TFClassifierLayer(TFBaseLayer):
     '''分类层
     1、分训练(train)模式与预测(infer)模式，训练模式会计算与返回loss
     2、支持Multi-Class-Dense&Multi-Class-Sparse&Multi-label
     3、支持加dropout层，大部分模型最后会带一层dropout layer
     '''
-    def __init__(self,
-                 mode,
-                 in_hidden,
-                 cls_num,
-                 cls_type,
-                 input_y):
+    def __init__(self, mode, in_hidden, cls_num, cls_type, input_y):
         '''初始化
 
         Args:
@@ -28,6 +23,7 @@ class TFClassifierLayer(BaseTFLayer):
             cls_type: multi-class-dense/multi-class-sparse/multi-label
             input_y: 标签labels, shape [batch, dense/sparse/one-hot labels]
         '''
+        TFBaseLayer.__init__(self)
         self.in_hidden = in_hidden
         self.hidden_size = in_hidden.get_shape()[-1]
         self.cls_num = cls_num
@@ -101,4 +97,3 @@ class TFClassifierLayer(BaseTFLayer):
             loss = tf.reduce_mean(losses)
 
             return loss
-

@@ -3,11 +3,11 @@
 # @author: wensong
 
 import tensorflow as tf
-from .base_tf_layer import BaseTFLayer
+from .tf_base_layer import TFBaseLayer
 from .tf_soft_att_layer import TFSoftAttLayer
 
 
-class TFBILSTMAttLayer(BaseTFLayer):
+class TFBILSTMAttLayer(TFBaseLayer):
     '''多层bi-lstm加attention层封装
     底层可以多个双向lstm，顶层是SoftAttention加权隐层表示。
     '''
@@ -21,7 +21,7 @@ class TFBILSTMAttLayer(BaseTFLayer):
             keep_prob: 多层lstm之间dropout输出时激活概率
         '''
         # 父类初始化
-        BaseTFLayer.__init__(self)
+        TFBaseLayer.__init__(self)
         # 当前layer参数
         self.in_hidden = in_hidden
         self.hidden_sizes = hidden_sizes

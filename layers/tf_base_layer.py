@@ -6,7 +6,7 @@ from ....utils.tf_utils import Utils
 import tensorflow as tf
 
 
-class BaseTFLayer(object):
+class TFBaseLayer(object):
     '''TF高级层的基类
     '''
     def __init__(self):

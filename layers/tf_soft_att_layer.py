@@ -3,10 +3,10 @@
 # @Author: wensong
 
 import tensorflow as tf
-from .base_tf_layer import BaseTFLayer
+from .tf_base_layer import TFBaseLayer
 
 
-class TFSoftAttLayer(BaseTFLayer):
+class TFSoftAttLayer(TFBaseLayer):
     '''soft attention层封装
     softmax求出attention score后，对隐层进行软加权。
     '''
@@ -18,7 +18,7 @@ class TFSoftAttLayer(BaseTFLayer):
             attention_size: attention权重矩阵宽度
         '''
         # 父类初始化
-        BaseTFLayer.__init__(self)
+        TFBaseLayer.__init__(self)
         # 当前层参数
         self.in_hidden = in_hidden
         self.in_hidden_size = in_hidden.get_shape()[-1]

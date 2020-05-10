@@ -3,10 +3,10 @@
 # @author: wensong
 
 import tensorflow as tf
-from .base_tf_layer import BaseTFLayer
+from .tf_base_layer import TFBaseLayer
 
 
-class TFTextCNNLayer(BaseTFLayer):
+class TFTextCNNLayer(TFBaseLayer):
     '''TextCNN Layer
     底层embedding layer, 再接多窗口多核卷积，最后最大池化max-pooling
     '''
@@ -20,7 +20,7 @@ class TFTextCNNLayer(BaseTFLayer):
             num_filters: 卷积核个数
         '''
         # 父类初始化
-        BaseTFLayer.__init__(self)
+        TFBaseLayer.__init__(self)
         # 参数
         self.in_hidden = self.in_hidden
         self.emb_size = self.in_hidden.get_shape()[-1]

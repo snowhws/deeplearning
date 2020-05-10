@@ -5,9 +5,9 @@ from ....utils.tf_utils import Utils
 import tensorflow as tf
 
 
-class BaseTFModel(object):
+class TFBaseClassifier(object):
     '''TF模型基类
-    主要实现可继承的公共方法，例如：loss计算、opt优化器选择、训练、评估等基础函数。
+    主要实现可继承的公共方法，例如：opt优化器选择、训练、评估等基础函数。
     子类则focus在模型实现上。
     '''
     def __init__(self, config, vocab_size=None, pretrain_word_vecs=None):
@@ -107,7 +107,7 @@ class BaseTFModel(object):
 
         return train_op, summary_op
 
-    def get_results(self):
+    def get_results(self, predictions):
         '''获取预测结果
 
         Return:
@@ -119,10 +119,10 @@ class BaseTFModel(object):
         results = None
 
         if self.cls_type == "multi-label":
-            results = tf.cast(self.logits, tf.float32, name="predictions")
+            results = tf.cast(predictions, tf.float32)
         elif self.cls_type == "multi-class-dense" or \
             self.cls_type == "multi-class-sparse":
-            results = tf.argmax(self.logits, axis=1, name="predictions")
+            results = tf.argmax(predictions, axis=1)
         return results
 
     def init_saver(self):
@@ -152,10 +152,10 @@ class BaseTFModel(object):
 
         # 运行会话
         _, summary, loss, predictions = sess.run(
-            [self.train_op, self.summary_op, self.loss, self.predictions],
+            [self.train_op, self.summary_op, self.loss],
             feed_dict=feed_dict)
 
-        return summary, loss, predictions
+        return summary, loss
 
     def accuracy(self):
         '''
