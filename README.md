@@ -8,43 +8,58 @@
 
 
 
-## Install
-
-See
+## 目录说明
 
 ```
-$ pip install tensorflow-cpu
+.
+|____layers
+| |____tf_bilstm_att_layer.py
+| |____tf_textcnn_layer.py
+| |____tf_soft_att_layer.py
+| |____tf_embedding_layer.py
+| |____tf_classifier_layer.py
+| |____tf_base_layer.py
+|____LICENSE
+|____corpus
+| |____README.md
+| |____nlp
+| | |____english
+| | | |____rt-polarity.neg
+| | | |____rt-polarity.pos
+| | |____chinese
+|____utils
+| |____tf_utils.pyc
+| |______init__.py
+| |____README.md
+| |______init__.pyc
+| |____tf_utils.py
+|____models
+| |____README.md
+| |____nlp
+| | |____classification
+| | | |____tf_bilstmatt_classifier.py
+| | | |____tf_textcnn_classifier.py
+| | | |____tf_base_classifier.py
+| | |____cluster
+| | |____similarity
+| | | |____README.md
+| | |____seq2seq
+| | |____sequence_labeling
+| |____cv
+| | |____README.md
+|____run.sh
+|____README.md
+|____ci.sh
+|____demos
+| |______init__.py
+| |____test.py
+| |____README.md
+| |____demo.py
 ```
 
-To update
+## 说明文档
 
-*Try your first TensorFlow program*
-
-```shell
-$ python
-```
-
-```python
->>> import tensorflow as tf
->>> tf.add(1, 2).numpy()
-3
->>> hello = tf.constant('Hello, TensorFlow!')
->>> hello.numpy()
-b'Hello, TensorFlow!'
-```
-
-For more examples, see the
-[TensorFlow tutorials](https://www.tensorflow.org/tutorials/).
-
-
-
-## Resources
-
-*   [TensorFlow.org](https://www.tensorflow.org)
-
-Learn more about the
-[TensorFlow community](https://www.tensorflow.org/community) and how to
-[contribute](https://www.tensorflow.org/community/contribute).
+*   [模型文档](https://github.com/snowhws/deeplearning/tree/master/models)
 
 ## License
 
