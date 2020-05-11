@@ -4,6 +4,8 @@
 
 import os
 import sys
+import datetime
+import logging
 sys.path.append(os.getcwd() + "/../../")
 from utils.tf_utils import TFUtils
 import tensorflow as tf
@@ -14,54 +16,39 @@ class TFBaseClassifier(object):
     主要实现可继承的公共方法，例如：opt优化器选择、训练、评估等基础函数。
     子类则focus在模型实现上。
     '''
-    def __init__(self, config, vocab_size=None, pretrain_word_vecs=None):
+    def __init__(self, flags):
         '''
         Args:
-            config: 模型配置参数（词典类型），包含learning_rate、classifier_type等参数
+            flags: 全局参数，包含learning_rate、classifier_type等参数
             vocab_size: 词向量为空时，使用vocab_size来初始化词向量
             pretrain_word_vecs：预训练词向量
-            pretrain_word_vecs 和 vocab_size必须有一个不为None
         '''
-        # config params
-        self.config = config  # 词典结构的配置
-        self.mode = TFUtils.default_dict(self.config, "mode",
-                                         "train")  # 模式：infer or train
-        self.lr = TFUtils.default_dict(self.config, "learning_rate",
-                                       1e-4)  # 学习率
-        self.emb_size = TFUtils.default_dict(self.config, "emb_size",
-                                             128)  # embedding维数
-        self.word_emb_trainable = TFUtils.default_dict(self.config,
-                                                       "word_emb_trainable",
-                                                       True)  # 词向量是否可训练
-        self.cls_num = TFUtils.default_dict(self.config, "cls_num", 2)  # 类目个数
-        self.max_seq_len = TFUtils.default_dict(self.config, "max_seq_len",
-                                                1024)  # 句子最大长度
-        self.cls_type = TFUtils.default_dict(self.config, "classifier_type",
-                                             "multi-class-dense")  # 分类器类型
-        self.opt = TFUtils.default_dict(self.config, "optimization",
-                                        "adam")  # 优化器
-        self.max_grad_norm = TFUtils.default_dict(self.config, "max_grad_norm",
-                                                  5.0)  # 梯度截取率
-        self.l2_reg_lambda = TFUtils.default_dict(self.config, "l2_reg_lambda",
-                                                  0.0)  # l2正则比例
+        # 获取全局参数
+        self.flags = flags
 
-        # model params
-        self.vocab_size = vocab_size  # 词表大小
-        self.pretrain_word_vecs = pretrain_word_vecs  # 支持预训练词向量
+        # 输入&占位符
         self.input_x = tf.placeholder(tf.int32, [None, None],
                                       name="input_x")  # 输入二维张量
-        self.input_y = tf.placeholder(tf.float32, [None, self.cls_num],
+        self.input_y = tf.placeholder(tf.float32, [None, self.flags.cls_num],
                                       name="input_y")  # 标签
         self.keep_prob = tf.placeholder(tf.float32, name="keep_prob")  # 激活概率
+        self.pretrain_word_vecs = None  # 预训练语言模型
 
-        # training params
-        self.l2_loss = tf.constant(0.0)  # 定义l2损失
+        # 模型产生的变量
         self.loss = 0.0  # 损失
         self.train_op = None  # 训练器
         self.summary_op = None  # 记录
         self.logits = None  # 输出
-        self.results = None  # 预测结果
+        self.probability = None  # 预测概率
         self.saver = None  # 保存器: checkpoint模型
+        self.predictions = None  # 预测结果
+        self.global_step = None  # 全局训练步数
+
+        # 指标metrics
+        self.precision = None  # 精确度
+        self.recall = None  # 召回率
+        self.accuracy = None  # 正确率
+        self.f1_score = None  # f1-score
 
     def build_model(self):
         '''构建模型
@@ -69,7 +56,7 @@ class TFBaseClassifier(object):
         '''
         raise NotImplementedError
 
-    def get_optimizer(self, lr=1e-5):
+    def get_optimizer(self):
         '''获取优化器
 
         Returns:
@@ -77,133 +64,174 @@ class TFBaseClassifier(object):
         '''
         optimizer = None
 
-        if self.opt == "adam":
-            optimizer = tf.train.AdamOptimizer(self.lr)
-        if self.opt == "rmsprop":
-            optimizer = tf.train.RMSPropOptimizer(self.lr)
-        if self.opt == "sgd":
-            optimizer = tf.train.GradientDescentOptimizer(self.lr)
+        if self.flags.opt == "adam":
+            optimizer = tf.train.AdamOptimizer(self.flags.lr)
+        if self.flags.opt == "rmsprop":
+            optimizer = tf.train.RMSPropOptimizer(self.flags.lr)
+        if self.flags.opt == "sgd":
+            optimizer = tf.train.GradientDescentOptimizer(self.flags.lr)
 
         return optimizer
 
-    def get_train_op(self):
+    def add_train_op(self):
         '''训练op
         设置梯度最大截断
-
-        Returns:
-            返回train_op以及summary_op
         '''
+        # 全局训练步数
+        self.global_step = tf.Variable(0, name="global_step", trainable=False)
         # 优化器
         optimizer = self.get_optimizer()
-
-        # 反向求梯度
+        # 反向求梯度: 等价于compute_gradients
         trainable_params = tf.trainable_variables()
         gradients = tf.gradients(self.loss, trainable_params)
         # 梯度截断
         clip_gradients, _ = tf.clip_by_global_norm(gradients,
-                                                   self.max_grad_norm)
-        # 使用梯度进行优化
-        train_op = optimizer.apply_gradients(
-            zip(clip_gradients, trainable_params))
+                                                   self.flags.max_grad_norm)
+        # 使用梯度进行优化: minimize等价于先compute_gradients，再apply_gradients
+        self.train_op = optimizer.apply_gradients(zip(clip_gradients,
+                                                      trainable_params),
+                                                  global_step=self.global_step)
         # 记录loss
         tf.summary.scalar("loss", self.loss)
-        # 自动管理记录
-        summary_op = tf.summary.merge_all()
+        # 合并scalar的变量
+        self.summary_op = tf.summary.merge_all()
 
-        return train_op, summary_op
+    def add_metrics(self):
+        '''添加指标统计
+        '''
+        # 获取结果
+        self.get_predictions()
+        # 精度
+        self.precision, self.precision_update = tf.metrics.precision(
+            labels=self.input_y,
+            predictions=self.predictions,
+            name="precision")
+        # 召回
+        self.recall, self.recall_update = tf.metrics.recall(
+            labels=self.input_y, predictions=self.predictions, name="recall")
+        # 正确率
+        self.accuracy, self.accuracy_update = tf.metrics.accuracy(
+            labels=self.input_y, predictions=self.predictions, name="accuracy")
+        # add precision and recall to summary
+        tf.summary.scalar('precision', self.precision_update)
+        tf.summary.scalar('recall', self.recall_update)
+        tf.summary.scalar('accuracy', self.accuracy_update)
 
-    def get_results(self, predictions):
+    def get_predictions(self):
         '''获取预测结果
-
-        Return:
-            返回预测结果，结果是列表形态。
-
-            若是multi-label任务，则结果是包含每个类目概率的数组。
-            若是multi-class任务，则结果是第几个类的索引，放在数组中。
+        将softmax跑出的概率转为tf.metrics可匹配的预测结果。
+        其中，若是multi-label任务，probs中大于0.5的为preds中预测为1的结果。
+        若是multi-class任务，则probs中最大值为对应类目的索引，preds中对应值置1。
         '''
-        results = None
+        if self.flags.cls_type == "multi-label":
+            one = tf.ones_like(self.probability)
+            zero = tf.zeros_like(self.probability)
+            self.predictions = tf.where(self.probability <= 0.5, x=zero, y=one)
+        elif self.flags.cls_type == "multi-class-dense" or \
+            self.flags.cls_type == "multi-class-sparse":
+            # 取topK
+            topk_values, topk_indices = tf.nn.top_k(self.probability,
+                                                    k=1,
+                                                    sorted=False)
+            # 大于等于第k大，True转1.0，False转0.0
+            self.predictions = tf.cast(
+                tf.greater_equal(self.probability, topk_values), tf.float32)
 
-        if self.cls_type == "multi-label":
-            results = tf.cast(predictions, tf.float32)
-        elif self.cls_type == "multi-class-dense" or \
-            self.cls_type == "multi-class-sparse":
-            results = tf.argmax(predictions, axis=1)
-        return results
-
-    def init_saver(self):
-        '''初始化saver对象
-        '''
-        if self.mode == "infer":
-            return
-
-        self.saver = tf.train.Saver(tf.global_variables())
-
-    def train(self, sess, batch, keep_prob):
-        '''训练
+    def train_onestep(self, sess, x_batch, y_batch):
+        '''单步训练
 
         Args:
             sess: 会话
-            batch: batch数据
-            keep_prob: 激活概率
+            x_batch: 输入batch
+            y_batch: 标签batch
 
         Return:
             返回训练记录、损失和预测结果
         '''
         feed_dict = {
-            self.input_x: batch["x"],
-            self.input_y: batch["y"],
-            self.keep_prob: keep_prob
+            self.input_x: x_batch,
+            self.input_y: y_batch,
+            self.keep_prob: self.flags.keep_prob
         }
-
         # 运行会话
-        _, summary, loss, predictions = sess.run(
-            [self.train_op, self.summary_op, self.loss], feed_dict=feed_dict)
+        _, step, loss, acc = sess.run(
+            [self.train_op, self.global_step, self.loss, self.accuracy_update],
+            feed_dict=feed_dict)
+        time_str = datetime.datetime.now().isoformat()
+        logging.info("{}: step {}, loss {:g}, acc {}".format(
+            time_str, step, loss, acc))
 
-        return summary, loss
+    def train(self, sess, vocab_processor, save_path, x_train, y_train, x_dev,
+              y_dev):
+        '''整体训练入口
 
-    def accuracy(self):
-        '''
-        '''
-        with tf.name_scope("accuracy"):
-            correct_predictions = tf.equal(self.predictions,
-                                           tf.argmax(self.input_y, 1))
-            accuracy = tf.reduce_mean(tf.cast(correct_predictions, "float"),
-                                      name="accuracy")
-
-            return accuracy
-
-    def eval(self, sess, batch):
-        '''验证
         Args:
             sess: 会话
-            batch: batch数据
+            vocab_processor: 词表处理器
+            save_path: 模型保存目录
+            x_train: 训练集输入
+            y_train: 训练集标签
+            x_dev: 评估集输入
+            y_dev: 评估集标签
+        '''
+        # 创建目录
+        checkpoint_dir = os.path.abspath(os.path.join(save_path,
+                                                      "checkpoints"))
+        checkpoint_prefix = os.path.join(checkpoint_dir, "model")
+        if not os.path.exists(checkpoint_dir):
+            os.makedirs(checkpoint_dir)
+        # 生成batch, zip会将两个数组遍历打包成对元组
+        batches = TFUtils.batch_iter(list(zip(x_train,
+                                              y_train)), self.flags.batch_size,
+                                     self.flags.num_epochs)
+        # 按batch训练
+        for batch in batches:
+            # zip(*)逆向解压
+            x_batch, y_batch = zip(*batch)
+            # 单步训练
+            self.train_onestep(sess, x_batch, y_batch)
+            # 获取当前步数
+            current_step = tf.train.global_step(sess, self.global_step)
+            # 评估
+            if current_step % self.flags.evaluate_every == 0:
+                logging.info("\nEvaluation:")
+                self.eval(sess, x_dev, y_dev)
+                logging.info("")
+            # 保存模型&词表
+            if current_step % self.flags.checkpoint_every == 0:
+                path = self.saver.save(sess,
+                                       checkpoint_prefix,
+                                       global_step=current_step)
+                vocab_processor.save(os.path.join(checkpoint_dir, "vocab"))
+                logging.info("Saved model checkpoint to {}\n".format(path))
 
-        Return:
-            记录、损失和预测结果
+    def eval(self, sess, x_batch, y_batch):
+        '''验证模型
+
+        Args:
+            sess: 会话
+            x_batch: 输入样本
+            y_batch: 输入标签
         '''
         feed_dict = {
-            self.input_x: batch["x"],
-            self.input_y: batch["y"],
-            self.keep_prob: 1.0
-        }  # 激活概率为1.0，使得dropout层失效
+            self.input_x: x_batch,
+            self.input_y: y_batch,
+            self.keep_prob: 1.0  # 评估时候通过dropout设置不更新参数
+        }
 
-        summary, loss, predictions = sess.run(
-            [self.summary_op, self.loss, self.predictions],
-            feed_dict=feed_dict)
-        return summary, loss, predictions
+        # 执行会话
+        step, loss, accuracy = sess.run(
+            [self.global_step, self.loss, self.accuracy], feed_dict)
+        time_str = datetime.datetime.now().isoformat()
+        logging.info("{}: step {}, loss {:g}, acc {:g}".format(
+            time_str, step, loss, accuracy))
 
-    def infer(self, sess, inputs):
-        '''预测
+    def infer(self, sess, x_batch, y_batch):
+        '''验证模型
 
         Args:
             sess: 会话
-            inputs: batch数据
-
-        Return:
-            预测结果
+            x_batch: 输入样本
+            y_batch: 输入标签
         '''
-        feed_dict = {self.input_x: inputs, self.keep_prob: 1.0}
-
-        predicts = sess.run(self.predictions, feed_dict=feed_dict)
-
-        return predicts
+        self.eval(sess, x_batch, y_batch)

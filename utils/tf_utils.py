@@ -6,6 +6,8 @@ import tensorflow as tf
 import numpy as np
 import re
 import sys
+import io
+import logging
 
 
 class TFUtils(object):
@@ -50,11 +52,11 @@ class TFUtils(object):
         # Load data from files
         # file => array
         positive_examples = list(
-            open(positive_data_file, "r", encoding='utf-8').readlines())
-        positive_examples = [preprocess(s) for s in positive_examples]
+            io.open(positive_data_file, "r", encoding='utf-8').readlines())
+        positive_examples = [TFUtils.preprocess(s) for s in positive_examples]
         negative_examples = list(
-            open(negative_data_file, "r", encoding='utf-8').readlines())
-        negative_examples = [preprocess(s) for s in negative_examples]
+            io.open(negative_data_file, "r", encoding='utf-8').readlines())
+        negative_examples = [TFUtils.preprocess(s) for s in negative_examples]
         # Split by words
         texts = positive_examples + negative_examples
         # Generate labels

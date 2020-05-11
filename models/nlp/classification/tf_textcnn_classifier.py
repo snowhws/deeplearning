@@ -4,6 +4,7 @@
 
 import os
 import sys
+import logging
 sys.path.append(os.getcwd() + "/../../")
 import tensorflow as tf
 from tf_base_classifier import TFBaseClassifier
@@ -15,35 +16,27 @@ from layers.tf_classifier_layer import TFClassifierLayer
 class TFTextCNNClassifier(TFBaseClassifier):
     '''TextCNN分类器
     '''
-    def __init__(self,
-                 config,
-                 filter_sizes,
-                 num_filters,
-                 vocab_size=None,
-                 pretrain_word_vecs=None):
+    def __init__(self, flags):
         '''
         Args:
-            config: 模型配置参数（词典类型），包含learning_rate、classifier_type等参数
-            max_seq_len: 序列最大长度
-            filter_sizes: array类型，所有卷积核的大小，支持多个窗口同时卷积
-            vocab_size: 词向量为空时，使用vocab_size来初始化词向量
-            pretrain_word_vecs：预训练词向量
+            flags: 全局参数，包含learning_rate、classifier_type等参数
         '''
         # 初始化基类
-        TFBaseClassifier.__init__(self, config, vocab_size, pretrain_word_vecs)
+        TFBaseClassifier.__init__(self, flags)
         # 此分类器参数
-        self.filter_sizes = filter_sizes
-        self.max_seq_len = max_seq_len
+        self.filter_sizes = list(map(int, flags.filter_sizes.split(",")))
 
     def build_model(self):
         '''构建模型
         '''
-        embedding_layer = TFEmbeddingLayer(self.input_x, self.vocab_size,
-                                           self.emb_size,
+        embedding_layer = TFEmbeddingLayer(self.input_x, self.flags.vocab_size,
+                                           self.flags.emb_size,
                                            self.pretrain_word_vecs).build()
-        textcnn_layer = TFTextCNNLayer(embedding_layer, self.max_seq_len,
+        textcnn_layer = TFTextCNNLayer(embedding_layer, self.flags.max_seq_len,
                                        self.filter_sizes,
-                                       self.num_filters).build()
-        self.predictions = TFClassifierLayer(self.mode, textcnn_layer,
-                                             self.cls_num, self.cls_type,
-                                             self.input_y).build()
+                                       self.flags.num_filters).build()
+        self.probability, self.logits, self.loss = TFClassifierLayer(
+            self.flags.mode, textcnn_layer, self.flags.cls_num,
+            self.flags.cls_type, self.input_y, self.flags.keep_prob,
+            self.flags.l2_reg_lambda).build()
+        return self

@@ -10,14 +10,11 @@ import logging
 class Executor(object):
     '''执行器：执行器用于串联一系列processor，从而运行核心程序
     '''
-    def __init__(self, task_name):
+    def __init__(self):
         '''初始化：执行哪个任务由task_name指定
-
-        Args:
-            task_name: 指定任务名，后续所有processor会根据任务名执行不同函数
         '''
         # processor 返回值
-        self.returns = {"TASK_NAME": task_name}
+        self.returns = {}
         # processor list
         self.pro_list = []
 

@@ -15,35 +15,27 @@ from layers.tf_classifier_layer import TFClassifierLayer
 class TFBILSTMATTClassifier(TFBaseClassifier):
     '''BILSTM-ATTENTION分类器
     '''
-    def __init__(self,
-                 config,
-                 hidden_sizes,
-                 attention_size,
-                 vocab_size=None,
-                 pretrain_word_vecs=None):
+    def __init__(self, flags):
         '''
         Args:
-            config: 模型配置参数（词典类型），包含learning_rate、classifier_type等参数
-            hidden_sizes: 多层BILSTM中每层隐层维数大小
-            attention_size: 注意力矩阵宽度
-            vocab_size: 词向量为空时，使用vocab_size来初始化词向量
-            pretrain_word_vecs：预训练词向量
+            flags: 全局参数，包含learning_rate、classifier_type等参数
         '''
         # 初始化基类
-        TFBaseClassifier.__init__(self, config, vocab_size, pretrain_word_vecs)
+        TFBaseClassifier.__init__(self, flags)
         # 此分类器参数
-        self.hidden_sizes = hidden_sizes
-        self.attention_size = attention_size
+        self.hidden_sizes = list(map(int, flags.hidden_sizes.split(",")))
 
     def build_model(self):
         '''构建模型
         '''
-        embedding_layer = TFEmbeddingLayer(self.input_x, self.vocab_size,
-                                           self.emb_size,
+        embedding_layer = TFEmbeddingLayer(self.input_x, self.flags.vocab_size,
+                                           self.flags.emb_size,
                                            self.pretrain_word_vecs).build()
         bilstmatt_layer = TFBILSTMAttLayer(embedding_layer, self.hidden_sizes,
-                                           self.attention_size,
-                                           self.keep_prob).build()
-        self.predictions = TFClassifierLayer(self.mode, bilstmatt_layer,
-                                             self.cls_num, self.cls_type,
-                                             self.input_y).build()
+                                           self.flags.attention_size,
+                                           self.flags.keep_prob).build()
+        self.probability, self.logits, self.loss = TFClassifierLayer(
+            self.flags.mode, bilstmatt_layer, self.flags.cls_num,
+            self.flags.cls_type, self.input_y, self.flags.keep_prob,
+            self.flags.l2_reg_lambda).build()
+        return self

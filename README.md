@@ -12,54 +12,78 @@
 
 ```
 .
-|____layers
-| |____tf_bilstm_att_layer.py
-| |____tf_textcnn_layer.py
-| |____tf_soft_att_layer.py
-| |____tf_embedding_layer.py
-| |____tf_classifier_layer.py
-| |____tf_base_layer.py
-|____LICENSE
-|____corpus
-| |____README.md
-| |____nlp
-| | |____english
-| | | |____rt-polarity.neg
-| | | |____rt-polarity.pos
-| | |____chinese
-|____utils
-| |____tf_utils.pyc
-| |______init__.py
-| |____README.md
-| |______init__.pyc
-| |____tf_utils.py
-|____models
-| |____README.md
-| |____nlp
-| | |____classification
-| | | |____tf_bilstmatt_classifier.py
-| | | |____tf_textcnn_classifier.py
-| | | |____tf_base_classifier.py
-| | |____cluster
-| | |____similarity
-| | | |____README.md
-| | |____seq2seq
-| | |____sequence_labeling
-| |____cv
-| | |____README.md
-|____run.sh
-|____README.md
-|____ci.sh
-|____demos
-| |______init__.py
-| |____test.py
-| |____README.md
-| |____demo.py
+├── LICENSE
+├── README.md
+├── add_comments.py
+├── ci.sh
+├── corpus                                            # 语料
+│   ├── README.md
+│   └── nlp
+│       ├── chinese
+│       └── english
+│           ├── rt-polarity.neg
+│           └── rt-polarity.pos
+├── demos                                             # 执行
+│   ├── README.md
+│   ├── __init__.py
+│   ├── executes                              # 执行内核
+│   │   ├── __init__.py
+│   │   ├── executor.py                       # 执行器
+│   │   ├── graph_processor.py                # 构图处理器
+│   │   ├── init_processor.py                 # 参数处理器
+│   │   ├── pre_processor.py                  # 语料处理器
+│   │   ├── session_processor.py              # 会话处理器
+│   ├── nlp_classifier.py                     # nlp分类器
+│   ├── run_nlp_classifier.sh
+│   └── test.py
+├── layers                                    # 高级层
+│   ├── __init__.py
+│   ├── tf_base_layer.py
+│   ├── tf_bilstm_att_layer.py
+│   ├── tf_classifier_layer.py
+│   ├── tf_embedding_layer.py
+│   ├── tf_soft_att_layer.py
+│   ├── tf_textcnn_layer.py
+├── models                                     # 模型层
+│   ├── README.md
+│   ├── __init__.py
+│   ├── cv
+│   │   └── README.md
+│   ├── nlp
+│   │   ├── __init__.py
+│   │   ├── classification
+│   │   │   ├── __init__.py
+│   │   │   ├── tf_base_classifier.py
+│   │   │   ├── tf_bilstmatt_classifier.py
+│   │   │   ├── tf_textcnn_classifier.py
+│   │   ├── cluster
+│   │   │   └── __init__.py
+│   │   ├── seq2seq
+│   │   │   └── __init__.py
+│   │   ├── sequence_labeling
+│   │   │   └── __init__.py
+│   │   └── similarity
+│   │       ├── README.md
+│   │       └── __init__.py
+│   └── tmp
+│       ├── base_classifier.py
+│       ├── bilstm_attention.py
+│       ├── data_helpers.py
+│       ├── test.py
+│       └── text_cnn.py
+├── run.sh
+└── utils
+├── README.md
+├── __init__.py
+├── tf_utils.py                                       # 工具类
+
+17 directories, 68 files
 ```
 
 ## 说明文档
 
-*   [模型文档](https://github.com/snowhws/deeplearning/tree/master/models)
+*   [已实现NLP模型文档](https://github.com/snowhws/deeplearning/tree/master/models)
+*   [Graph与Session的关系：适合构建复杂组合模型](https://www.jianshu.com/p/b636de7c251a)
 
 ## License
 

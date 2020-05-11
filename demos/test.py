@@ -2,23 +2,12 @@
 # -*- coding: utf-8 -*-
 # @Author: wensong
 
-import os
-import sys
-sys.path.append(os.getcwd() + "/../")
-from utils.tf_utils import TFUtils
+import tensorflow as tf
 
+flags = tf.app.flags
+flags.DEFINE_string('data_dir', '/tmp/mnist', 'Directory with the MNIST data.')
+flags.DEFINE_integer('batch_size', 5, 'Batch size.')
+flags.DEFINE_integer('num_evals', 1000, 'Number of batches to evaluate.')
+FLAGS = flags.FLAGS
 
-def run():
-    tfile = open("../corpus/nlp/english/rt-polarity.pos")
-    line = ""
-    while True:
-        line = tfile.readline()
-        if not line:
-            break
-        print line
-        print TFUtils.preprocess(line)
-        print "================"
-
-
-if __name__ == "__main__":
-    run()
+print(FLAGS.data_dir, FLAGS.batch_size, FLAGS.num_evals)

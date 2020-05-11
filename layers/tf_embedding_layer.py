@@ -24,7 +24,7 @@ class TFEmbeddingLayer(TFBaseLayer):
             pretrain_word_vecs: 预训练词向量
             word_emb_trainable: 预训练词向量是否可update
         '''
-        TFBaseLayer.__init__()
+        TFBaseLayer.__init__(self)
         self.input_x = input_x
         self.vocab_size = vocab_size
         self.emb_size = emb_size

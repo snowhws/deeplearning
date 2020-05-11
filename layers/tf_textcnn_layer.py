@@ -22,7 +22,7 @@ class TFTextCNNLayer(TFBaseLayer):
         # 父类初始化
         TFBaseLayer.__init__(self)
         # 参数
-        self.in_hidden = self.in_hidden
+        self.in_hidden = in_hidden
         self.emb_size = self.in_hidden.get_shape()[-1]
         self.max_seq_len = max_seq_len
         self.filter_sizes = filter_sizes
@@ -41,7 +41,7 @@ class TFTextCNNLayer(TFBaseLayer):
         # 所有卷积核的池化层
         pooled_outputs = []
         # 遍历卷积核：可以同时用3、4、5等多个窗口
-        for i, filter_size in enumerate(filter_sizes):
+        for i, filter_size in enumerate(self.filter_sizes):
             with tf.name_scope("conv-maxpool-%s" % filter_size):
                 # 卷积核shape：[卷积核大小，宽度，输入通数，输出通道数]
                 filter_shape = [
