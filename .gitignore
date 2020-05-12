@@ -124,3 +124,6 @@ dmypy.json
 # Pyre type checker
 .pyre/
 nohup.out
+add_comments.py
+add_comments_to_tree.sh
+add_comments.py
