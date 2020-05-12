@@ -110,8 +110,8 @@ def get_flags():
     tf.flags.DEFINE_float("max_grad_norm", 5.0,
                           "Max Gradient Norm(default: 5.0)")
     tf.flags.DEFINE_float(
-        "loss_convergence_score", 1e-3,
-        "Convergence condition by abs(current_loss - last_loss) < loss_convergence_score(default: 1e-3)"
+        "acc_convergence_score", 1e-4,
+        "Convergence condition by abs(current_acc - last_acc) < acc_convergence_score(default: 1e-4)"
     )
 
     #  设备及日志相关

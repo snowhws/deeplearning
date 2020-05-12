@@ -185,7 +185,7 @@ class TFBaseClassifier(object):
                                               y_train)), self.flags.batch_size,
                                      self.flags.num_epochs)
         # 自动停止条件
-        last_loss = 0.0
+        last_acc = 0.0
         # 按batch训练
         for batch in batches:
             # zip(*)逆向解压
@@ -204,13 +204,13 @@ class TFBaseClassifier(object):
             # 评估
             if current_step % self.flags.evaluate_every == 0:
                 logging.info("\nEvaluation:")
-                curr_loss = self.eval(sess, x_dev, y_dev)
+                curr_acc = self.eval(sess, x_dev, y_dev)
                 logging.info("")
                 # 不再收敛，则停止
-                if abs(curr_loss -
-                       last_loss) <= self.flags.loss_convergence_score:
+                if abs(curr_acc -
+                       last_acc) <= self.flags.acc_convergence_score:
                     break
-                last_loss = curr_loss
+                last_acc = curr_acc
 
     def eval(self, sess, x_batch, y_batch):
         '''验证模型
@@ -233,7 +233,7 @@ class TFBaseClassifier(object):
         logging.info("{}: step {}, loss {:g}, acc {:g}".format(
             time_str, step, loss, accuracy))
 
-        return loss
+        return accuracy
 
     def infer(self, sess, x_batch, y_batch):
         '''验证模型
