@@ -184,6 +184,8 @@ class TFBaseClassifier(object):
         batches = TFUtils.batch_iter(list(zip(x_train,
                                               y_train)), self.flags.batch_size,
                                      self.flags.num_epochs)
+        # 自动停止条件
+        last_loss = 0.0
         # 按batch训练
         for batch in batches:
             # zip(*)逆向解压
@@ -192,11 +194,6 @@ class TFBaseClassifier(object):
             self.train_onestep(sess, x_batch, y_batch)
             # 获取当前步数
             current_step = tf.train.global_step(sess, self.global_step)
-            # 评估
-            if current_step % self.flags.evaluate_every == 0:
-                logging.info("\nEvaluation:")
-                self.eval(sess, x_dev, y_dev)
-                logging.info("")
             # 保存模型&词表
             if current_step % self.flags.checkpoint_every == 0:
                 path = self.saver.save(sess,
@@ -204,6 +201,16 @@ class TFBaseClassifier(object):
                                        global_step=current_step)
                 vocab_processor.save(os.path.join(checkpoint_dir, "vocab"))
                 logging.info("Saved model checkpoint to {}\n".format(path))
+            # 评估
+            if current_step % self.flags.evaluate_every == 0:
+                logging.info("\nEvaluation:")
+                curr_loss = self.eval(sess, x_dev, y_dev)
+                logging.info("")
+                # 不再收敛，则停止
+                if abs(curr_loss -
+                       last_loss) <= self.flags.loss_convergence_score:
+                    break
+                last_loss = curr_loss
 
     def eval(self, sess, x_batch, y_batch):
         '''验证模型
@@ -225,6 +232,8 @@ class TFBaseClassifier(object):
         time_str = datetime.datetime.now().isoformat()
         logging.info("{}: step {}, loss {:g}, acc {:g}".format(
             time_str, step, loss, accuracy))
+
+        return loss
 
     def infer(self, sess, x_batch, y_batch):
         '''验证模型
