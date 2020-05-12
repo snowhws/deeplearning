@@ -182,8 +182,9 @@ class TFBaseClassifier(object):
             y_dev: 评估集标签
         '''
         # 初始化日志写入器
-        self.summary_writer = tf.summary.FileWriter(self.flags.log_path,
-                                                    graph=graph)
+        timestamp = "{0:%Y-%m-%d_%H-%M-%S/}".format(datetime.datetime.now())
+        log_path = os.path.join(self.flags.log_path, timestamp)
+        self.summary_writer = tf.summary.FileWriter(log_path, graph=graph)
         # 模型保存目录
         checkpoint_dir = os.path.abspath(os.path.join(save_path,
                                                       "checkpoints"))

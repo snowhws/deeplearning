@@ -27,7 +27,7 @@ class SessionProcessor(object):
         model, graph = params["GRAPH"]
         x_train, y_train, vocab_processor, x_dev, y_dev = params["PRE"]
         # 保存目录
-        timestamp = str(int(time.time()))
+        timestamp = "{0:%Y-%m-%d_%H-%M-%S/}".format(datetime.datetime.now())
         self.save_path = os.path.abspath(
             os.path.join(os.path.curdir, "../" + flags.save_path, timestamp))
         # session配置
