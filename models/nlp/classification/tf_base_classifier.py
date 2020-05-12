@@ -37,7 +37,8 @@ class TFBaseClassifier(object):
         # 模型产生的变量
         self.loss = 0.0  # 损失
         self.train_op = None  # 训练器
-        self.summary_op = None  # 记录
+        self.summary_op = None  # 记录器
+        self.summary_writer = None  # 日志写入器
         self.logits = None  # 输出
         self.probability = None  # 预测概率
         self.saver = None  # 保存器: checkpoint模型
@@ -154,19 +155,25 @@ class TFBaseClassifier(object):
             self.keep_prob: self.flags.keep_prob
         }
         # 运行会话
-        _, step, loss, acc = sess.run(
-            [self.train_op, self.global_step, self.loss, self.accuracy_update],
-            feed_dict=feed_dict)
+        _, summary_op, step, loss, acc = sess.run([
+            self.train_op, self.summary_op, self.global_step, self.loss,
+            self.accuracy_update
+        ],
+                                                  feed_dict=feed_dict)
+        # 保存log
+        self.summary_writer.add_summary(summary_op, step)
+        # 打印acc等结果
         time_str = datetime.datetime.now().isoformat()
         logging.info("{}: step {}, loss {:g}, acc {}".format(
             time_str, step, loss, acc))
 
-    def train(self, sess, vocab_processor, save_path, x_train, y_train, x_dev,
-              y_dev):
+    def train(self, sess, graph, vocab_processor, save_path, x_train, y_train,
+              x_dev, y_dev):
         '''整体训练入口
 
         Args:
             sess: 会话
+            graph: 整个图
             vocab_processor: 词表处理器
             save_path: 模型保存目录
             x_train: 训练集输入
@@ -174,7 +181,10 @@ class TFBaseClassifier(object):
             x_dev: 评估集输入
             y_dev: 评估集标签
         '''
-        # 创建目录
+        # 初始化日志写入器
+        self.summary_writer = tf.summary.FileWriter(self.flags.log_path,
+                                                    graph=graph)
+        # 模型保存目录
         checkpoint_dir = os.path.abspath(os.path.join(save_path,
                                                       "checkpoints"))
         checkpoint_prefix = os.path.join(checkpoint_dir, "model")
@@ -200,7 +210,7 @@ class TFBaseClassifier(object):
                                        checkpoint_prefix,
                                        global_step=current_step)
                 vocab_processor.save(os.path.join(checkpoint_dir, "vocab"))
-                logging.info("Saved model checkpoint to {}\n".format(path))
+                logging.info("Saved model&vocab to {}\n".format(path))
             # 评估
             if current_step % self.flags.evaluate_every == 0:
                 logging.info("\nEvaluation:")
@@ -209,6 +219,9 @@ class TFBaseClassifier(object):
                 # 不再收敛，则停止
                 if abs(curr_acc -
                        last_acc) <= self.flags.acc_convergence_score:
+                    logging.info("Accuracy convergenced last_acc: " +
+                                 str(last_acc) + " -> curr_acc: " +
+                                 str(curr_acc) + ", Stop training!")
                     break
                 last_acc = curr_acc
 

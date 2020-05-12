@@ -47,8 +47,8 @@ class SessionProcessor(object):
             sess.run(tf.local_variables_initializer())
             # 训练or预测
             if flags.mode == "train":
-                model.train(sess, vocab_processor, self.save_path, x_train,
-                            y_train, x_dev, y_dev)
+                model.train(sess, graph, vocab_processor, self.save_path,
+                            x_train, y_train, x_dev, y_dev)
             else:
                 model.infer()
             # 关闭session节省资源

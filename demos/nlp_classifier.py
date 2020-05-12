@@ -122,6 +122,8 @@ def get_flags():
                             "Log placement of ops on devices")  # 是否打印备份日志
     tf.flags.DEFINE_string("save_path", "save_models",
                            "save_path (default: 'save_models')")
+    tf.flags.DEFINE_string("log_path", os.path.join(current_path, "../log/"),
+                           "summary path for tensorboard(default: '../log')")
 
     return tf.flags.FLAGS
 
