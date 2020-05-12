@@ -70,7 +70,7 @@ class TFBILSTMAttLayer(TFBaseLayer):
 
         # Attention
         with tf.name_scope("SoftAtt_layer"):
-            self.output = TFSoftAttLayer(bilstm_layer, self.att_size).layer()
+            self.output = TFSoftAttLayer(bilstm_layer, self.att_size).build()
 
             # [Batch, In_Hidden_Size]
             return self.output

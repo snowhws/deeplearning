@@ -18,7 +18,7 @@ class TFSoftAttLayer(TFBaseLayer):
             attention_size: attention权重矩阵宽度
         '''
         # 父类初始化
-        BaseTFBaseLayer.__init__(self)
+        TFBaseLayer.__init__(self)
         # 当前层参数
         self.in_hidden = in_hidden
         self.in_hidden_size = in_hidden.get_shape()[-1]
@@ -34,16 +34,15 @@ class TFSoftAttLayer(TFBaseLayer):
         # 初始化att参数
         att_w = tf.get_variable(
             "attention_weight",
-            shape=[self.hidden_size, self.attention_size],
+            shape=[self.in_hidden_size, self.attention_size],
             initializer=tf.contrib.layers.xavier_initializer())
-        att_b = tf.get_variable(
-            "attention_bias",
-            shape=[self.attention_size],
-            initializer=tf.contrib.layers.zeros_initializer())
+        att_b = tf.get_variable("attention_bias",
+                                shape=[self.attention_size],
+                                initializer=tf.zeros_initializer())
         att_u = tf.get_variable(
             "attention_u",
             shape=[self.attention_size],
-            initializer=tf.contrib.layers.zeros_initializer())
+            initializer=tf.contrib.layers.xavier_initializer())
 
         # 非线性转换
         # [B, T, H] dot [H, A] = [B, T, A]

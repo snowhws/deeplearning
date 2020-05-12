@@ -15,6 +15,7 @@ class TFBaseLayer(object):
     def __init__(self):
         '''基类初始化
         '''
+        pass
 
     def build(self):
         '''层具体实现交给子类完成
