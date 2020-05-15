@@ -84,10 +84,22 @@
 ├── tf_utils.py                                       # 工具类
 ```
 
+
+
 ## 说明文档
 
-*   [已实现NLP模型文档](https://github.com/snowhws/deeplearning/tree/master/models)
-*   [Graph与Session的关系：适合构建复杂组合模型](https://www.jianshu.com/p/b636de7c251a)
+* [已实现NLP模型文档](https://github.com/snowhws/deeplearning/tree/master/models)
+
+  
+
+## 他山之石
+- [1] [NLP任务&Paper&Data汇总](https://github.com/Kyubyong/nlp_tasks)
+
+- [2] [NLP任务汇总-中文](https://blog.csdn.net/tmb8z9vdm66wh68vx1/article/details/78315077)
+
+- [2] [Graph与Session的关系：适合构建复杂组合模型](https://www.jianshu.com/p/b636de7c251a)
+
+  
 
 ## License
 

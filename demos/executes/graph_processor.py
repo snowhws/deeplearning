@@ -9,6 +9,7 @@ import tensorflow as tf
 import numpy as np
 from models.nlp.classification.tf_bilstmatt_classifier import TFBILSTMATTClassifier
 from models.nlp.classification.tf_textcnn_classifier import TFTextCNNClassifier
+from models.nlp.classification.tf_transformer_classifier import TFTransformerClassifier
 
 
 class GraphProcessor(object):
@@ -33,6 +34,8 @@ class GraphProcessor(object):
                 model = TFTextCNNClassifier(flags).build_model()
             elif flags.task_name == "BILSTMAtt":
                 model = TFBILSTMATTClassifier(flags).build_model()
+            elif flags.task_name == "Transformer":
+                model = TFTransformerClassifier(flags).build_model()
             # 添加统计指标
             model.add_metrics()
             # 添加训练优化器等

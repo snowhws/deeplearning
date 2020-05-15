@@ -8,6 +8,7 @@ from tf_base_layer import TFBaseLayer
 
 class TFSoftAttLayer(TFBaseLayer):
     '''soft attention层封装
+    参考paper(Hierarchical Attention Networks for Document Classification)：https://www.aclweb.org/anthology/N16-1174/
     softmax求出attention score后，对隐层进行软加权。
     '''
     def __init__(self, in_hidden, attention_size):

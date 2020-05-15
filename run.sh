@@ -18,5 +18,5 @@ analysis() {
 }
 
 # edit
-# train
-analysis
+train
+# analysis

@@ -3,7 +3,7 @@
 # @Author: wensong
 
 import os
-import time
+import datetime
 import sys
 sys.path.append(os.getcwd() + "/../../")
 import tensorflow as tf

@@ -14,5 +14,12 @@ run_bilstm_att() {
     --max_seq_len 128
 }
 
-# run_textcnn
-run_bilstm_att
+run_transformer() {
+  python ./nlp_classifier.py \
+    --task_name "Transformer" \
+    --max_seq_len 128
+}
+
+#run_textcnn
+#run_bilstm_att
+run_transformer

@@ -70,8 +70,8 @@ def get_flags():
     )
     tf.flags.DEFINE_integer("emb_size", 128,
                             "Dimensionality of word embedding (default: 128)")
-    tf.flags.DEFINE_integer("max_seq_len", 256,
-                            "max len of input seq(default: 256)")
+    tf.flags.DEFINE_integer("max_seq_len", 128,
+                            "max len of input seq(default: 128)")
     tf.flags.DEFINE_boolean(
         "word_emb_trainable", True,
         "pretrain word embedding trainable(default: True)")
@@ -89,6 +89,13 @@ def get_flags():
     )
     tf.flags.DEFINE_integer("attention_size", 128,
                             "BILSTM-Attention size(default: 128)")
+
+    # Transformer等模型相关参数
+    tf.flags.DEFINE_integer(
+        "hidden_size", 256,
+        "hidden size for TransformerClassifier/... (default: 256)")
+    tf.flags.DEFINE_integer(
+        "num_blocks", 1, "num of blocks of Transformer Encoder(default: 1)")
 
     # 训练相关参数
     tf.flags.DEFINE_float("lr", 1e-3, "learning rate (default: 1e-3)")
