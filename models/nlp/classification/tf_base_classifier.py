@@ -164,7 +164,7 @@ class TFBaseClassifier(object):
         self.summary_writer.add_summary(summary_op, step)
         # 打印acc等结果
         time_str = datetime.datetime.now().isoformat()
-        logging.info("{}: step {}, loss {:g}, acc {}".format(
+        logging.info("{}: step {}, loss {:g}, train acc {}".format(
             time_str, step, loss, acc))
 
     def train(self, sess, graph, vocab_processor, save_path, x_train, y_train,
@@ -244,7 +244,7 @@ class TFBaseClassifier(object):
         step, loss, accuracy = sess.run(
             [self.global_step, self.loss, self.accuracy], feed_dict)
         time_str = datetime.datetime.now().isoformat()
-        logging.info("{}: step {}, loss {:g}, acc {:g}".format(
+        logging.info("{}: step {}, loss {:g}, test acc {:g}".format(
             time_str, step, loss, accuracy))
 
         return accuracy

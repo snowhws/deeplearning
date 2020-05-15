@@ -11,7 +11,12 @@ class TFBILSTMAttLayer(TFBaseLayer):
     '''多层bi-lstm加attention层封装
     底层可以多个双向lstm，顶层是SoftAttention加权隐层表示。
     '''
-    def __init__(self, in_hidden, hidden_sizes, attention_size, keep_prob):
+    def __init__(self,
+                 in_hidden,
+                 hidden_sizes,
+                 attention_size,
+                 keep_prob,
+                 rnn_type="GRU"):
         '''Bi-LSTM-ATTENTION初始化
 
         Args:
@@ -19,6 +24,7 @@ class TFBILSTMAttLayer(TFBaseLayer):
             hidden_sizes: 多层BILSTM中每层隐层维数大小
             attention_size: 注意力矩阵宽度
             keep_prob: 多层lstm之间dropout输出时激活概率
+            rnn_type: 可选择LSTM或GRU
         '''
         # 父类初始化
         TFBaseLayer.__init__(self)
@@ -27,6 +33,7 @@ class TFBILSTMAttLayer(TFBaseLayer):
         self.hidden_sizes = hidden_sizes
         self.att_size = attention_size
         self.keep_prob = keep_prob
+        self.rnn_type = rnn_type
 
     def build(self):
         '''多层bilstm-attention Layer隐层表示
@@ -36,21 +43,14 @@ class TFBILSTMAttLayer(TFBaseLayer):
         '''
         layer_hidden = self.in_hidden
         # 定义双向LSTM的模型结构
-        with tf.name_scope("BILSTM_Layer"):
+        with tf.name_scope(self.rnn_type + "Layers"):
             # n个双层lstm
             for idx, hidden_size in enumerate(self.hidden_sizes):
-                with tf.name_scope("BILSTM" + str(idx)):
+                with tf.name_scope(self.rnn_type + "Layer_" + str(idx)):
                     # forward LSTM
-                    fw_lstm_cell = tf.nn.rnn_cell.DropoutWrapper(
-                        tf.nn.rnn_cell.LSTMCell(num_units=hidden_size,
-                                                state_is_tuple=True),
-                        output_keep_prob=self.keep_prob)
+                    fw_lstm_cell = self._rnn_cell(hidden_size)
                     # backward LSTM
-                    bw_lstm_cell = tf.nn.rnn_cell.DropoutWrapper(
-                        tf.nn.rnn_cell.LSTMCell(num_units=hidden_size,
-                                                state_is_tuple=True),
-                        output_keep_prob=self.keep_prob)
-
+                    bw_lstm_cell = self._rnn_cell(hidden_size)
                     # outputs: (output_fw, output_bw)
                     # 其中两个元素的维度都是[batch_size, max_time, hidden_size],
                     outputs, current_state = tf.nn.bidirectional_dynamic_rnn(
@@ -58,7 +58,7 @@ class TFBILSTMAttLayer(TFBaseLayer):
                         bw_lstm_cell,
                         layer_hidden,  # 第一层输入是word_emb，第二层输入是上一层双向的拼接隐层
                         dtype=tf.float32,
-                        scope="BILSTM" + str(idx))
+                        scope=self.rnn_type + str(idx))
 
                     # 从第三维拼接：[batch_size, time_step, hidden_size]
                     layer_hidden = tf.concat(outputs, 2)
@@ -69,8 +69,21 @@ class TFBILSTMAttLayer(TFBaseLayer):
         bilstm_layer = outputs[0] + outputs[1]
 
         # Attention
-        with tf.name_scope("SoftAtt_layer"):
+        with tf.name_scope("AttetionLayer"):
             self.output = TFSoftAttLayer(bilstm_layer, self.att_size).build()
 
             # [Batch, In_Hidden_Size]
             return self.output
+
+    def _rnn_cell(self, hidden_size):
+        '''获取RNN Cell
+        '''
+        rnn_cell = None
+        if self.rnn_type == "LSTM":
+            rnn_cell = tf.nn.rnn_cell.LSTMCell(num_units=hidden_size)
+        else:
+            rnn_cell = tf.nn.rnn_cell.GRUCell(num_units=hidden_size)
+
+        rnn_with_dp = tf.nn.rnn_cell.DropoutWrapper(
+            rnn_cell, output_keep_prob=self.keep_prob)
+        return rnn_with_dp

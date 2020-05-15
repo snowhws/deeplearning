@@ -36,7 +36,7 @@ class TFTextCNNClassifier(TFBaseClassifier):
                                        self.filter_sizes,
                                        self.flags.num_filters).build()
         self.probability, self.logits, self.loss = TFClassifierLayer(
-            self.flags.mode, textcnn_layer, self.flags.cls_num,
+            self.flags.training, textcnn_layer, self.flags.cls_num,
             self.flags.cls_type, self.input_y, self.flags.keep_prob,
             self.flags.l2_reg_lambda).build()
         return self

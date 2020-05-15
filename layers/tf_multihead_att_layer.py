@@ -13,10 +13,9 @@ class TFMultiHeadAttLayer(TFBaseLayer):
     def __init__(self,
                  queries,
                  keys,
-                 d_model=None,
                  num_heads=8,
                  dropout_rate=0.5,
-                 is_training=True,
+                 training=True,
                  causality=False,
                  scope="multihead_attention"):
         '''初始化
@@ -24,10 +23,9 @@ class TFMultiHeadAttLayer(TFBaseLayer):
         Args:
             queries: 查询Q, A 3d tensor with shape of [N, T_q, d_model].
             keys: 匹配K, A 3d tensor with shape of [N, T_k, d_model].
-            d_model: 多头维度，若不指定则为queries隐层大小
             num_heads: 多头数目
             dropout_rate: dropout丢弃概率 = 1 - keep_prob
-            is_training: 是否在训练，控制dropout层的生效方式
+            training: 是否在训练，控制dropout层的生效方式
             causality: 是否mask未来预测部分，transformer decoder中使用
             scope: 共享变量variable_scope
         '''
@@ -36,10 +34,9 @@ class TFMultiHeadAttLayer(TFBaseLayer):
         # 当前层参数
         self.queries = queries
         self.keys = keys
-        self.d_model = d_model
         self.num_heads = num_heads
         self.dropout_rate = dropout_rate
-        self.is_training = is_training
+        self.training = training
         self.causality = causality
         self.scope = scope
 
@@ -49,9 +46,8 @@ class TFMultiHeadAttLayer(TFBaseLayer):
         Returns:
             返回经过multi-head attention后的表示
         """
-        # 维度
-        if self.d_model is None:
-            self.d_model = self.queries.get_shape().as_list()[-1]
+        # attention维度与词向量维度一致，因为后续有res connection
+        self.d_model = self.queries.get_shape().as_list()[-1]
         # multihead共享变量
         with tf.variable_scope(self.scope, reuse=tf.AUTO_REUSE):
             # QKV做线性变换
@@ -77,7 +73,7 @@ class TFMultiHeadAttLayer(TFBaseLayer):
                 V_,
                 causality=self.causality,
                 dropout_rate=self.dropout_rate,
-                training=self.is_training)
+                training=self.training)
 
             # Restore shape
             outputs = tf.concat(tf.split(outputs, self.num_heads, axis=0),
@@ -118,7 +114,7 @@ class TFMultiHeadAttLayer(TFBaseLayer):
             # softmax(Q*K^T / √dk)
             outputs = tf.nn.softmax(outputs)
 
-            # 如果是训练过程，则添加attention summary
+            # 如果是训练过程，则添加attention图像summary
             if training:
                 # [N, T_q, T_k] -> [N, T_k, T_q]
                 attention = tf.transpose(outputs, [0, 2, 1])

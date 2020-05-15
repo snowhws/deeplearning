@@ -17,6 +17,8 @@ run_bilstm_att() {
 run_transformer() {
   python ./nlp_classifier.py \
     --task_name "Transformer" \
+    --num_blocks 1 \
+    --keep_prob 0.7 \
     --max_seq_len 128
 }
 

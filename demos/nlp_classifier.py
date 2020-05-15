@@ -42,10 +42,10 @@ def get_flags():
     tf.flags.DEFINE_string(
         "task_name", "TextCNN",
         "task name, canbe BILSTMAtt/TextCNN(default: TextCNN)")
-    tf.flags.DEFINE_string("mode", "train", "train or infer(default: train)")
+    tf.flags.DEFINE_boolean("training", True, "True or False(default: True)")
     # 样本集合相关参数
     tf.flags.DEFINE_float(
-        "dev_sample_percentage", .1,
+        "dev_sample_percentage", .2,
         "Percentage of the training data to use for validation")
     tf.flags.DEFINE_string(
         "positive_data_file",
@@ -91,9 +91,8 @@ def get_flags():
                             "BILSTM-Attention size(default: 128)")
 
     # Transformer等模型相关参数
-    tf.flags.DEFINE_integer(
-        "hidden_size", 256,
-        "hidden size for TransformerClassifier/... (default: 256)")
+    tf.flags.DEFINE_integer("hidden_size", 1024,
+                            "hidden size for Transformer FFN (default: 1024)")
     tf.flags.DEFINE_integer(
         "num_blocks", 1, "num of blocks of Transformer Encoder(default: 1)")
 
@@ -104,8 +103,8 @@ def get_flags():
                             "Number of training epochs (default: 100)")
     tf.flags.DEFINE_float("keep_prob", 0.5,
                           "Dropout keep probability (default: 0.5)")
-    tf.flags.DEFINE_float("l2_reg_lambda", 0.0,
-                          "L2 regularization lambda (default: 0.0)")
+    tf.flags.DEFINE_float("l2_reg_lambda", 3e-3,
+                          "L2 regularization lambda (default: 3e-3)")
     tf.flags.DEFINE_integer(
         "evaluate_every", 100,
         "Evaluate model on dev set after this many steps (default: 100)")

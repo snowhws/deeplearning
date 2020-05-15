@@ -39,7 +39,7 @@ class GraphProcessor(object):
             # 添加统计指标
             model.add_metrics()
             # 添加训练优化器等
-            if flags.mode == "train":
+            if flags.training:
                 model.add_train_op()
 
         return model, graph

@@ -46,7 +46,7 @@ class SessionProcessor(object):
             # 如果在train中按batch reset，则acc统计的是每个batch的acc
             sess.run(tf.local_variables_initializer())
             # 训练or预测
-            if flags.mode == "train":
+            if flags.training:
                 model.train(sess, graph, vocab_processor, self.save_path,
                             x_train, y_train, x_dev, y_dev)
             else:
