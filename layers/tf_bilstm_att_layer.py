@@ -16,6 +16,7 @@ class TFBILSTMAttLayer(TFBaseLayer):
                  hidden_sizes,
                  attention_size,
                  keep_prob,
+                 training=True,
                  rnn_type="GRU"):
         '''Bi-LSTM-ATTENTION初始化
 
@@ -24,6 +25,7 @@ class TFBILSTMAttLayer(TFBaseLayer):
             hidden_sizes: 多层BILSTM中每层隐层维数大小
             attention_size: 注意力矩阵宽度
             keep_prob: 多层lstm之间dropout输出时激活概率
+            training: 是否训练模式
             rnn_type: 可选择LSTM或GRU
         '''
         # 父类初始化
@@ -33,6 +35,7 @@ class TFBILSTMAttLayer(TFBaseLayer):
         self.hidden_sizes = hidden_sizes
         self.att_size = attention_size
         self.keep_prob = keep_prob
+        self.training = training
         self.rnn_type = rnn_type
 
     def build(self):
@@ -70,7 +73,8 @@ class TFBILSTMAttLayer(TFBaseLayer):
 
         # Attention
         with tf.name_scope("AttetionLayer"):
-            self.output = TFSoftAttLayer(bilstm_layer, self.att_size).build()
+            self.output = TFSoftAttLayer(bilstm_layer, self.att_size,
+                                         self.training).build()
 
             # [Batch, In_Hidden_Size]
             return self.output

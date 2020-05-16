@@ -121,11 +121,12 @@ class TFMultiHeadAttLayer(TFBaseLayer):
                 # 取batch中一个样例：[N, T_k, T_q] -> [1, T_k, T_q]
                 attention = attention[:1]
                 # [batch, height, width, channels]
-                # 扩展channels: [1, T_k, T_q, 1]
                 # channels = 1: 灰度
                 # channels = 3: RGB
                 # channels = 4: RGBA
+                # 扩展channels: [1, T_k, T_q, 4]
                 attention = tf.expand_dims(attention, -1)
+                attention = tf.tile(attention, [1, 1, 1, 4])
                 # tensorboard images上显示attention效果图
                 tf.summary.image("attention", attention)
 

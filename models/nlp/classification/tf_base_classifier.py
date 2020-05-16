@@ -28,10 +28,10 @@ class TFBaseClassifier(object):
         self.flags = flags
 
         # 输入&占位符
-        self.input_x = tf.placeholder(tf.int32, [None, None],
-                                      name="input_x")  # 输入二维张量
+        self.input_x = tf.placeholder(
+            tf.int32, [None, None], name="input_x")  # 输入[Batch, word_id_list]
         self.input_y = tf.placeholder(tf.float32, [None, self.flags.cls_num],
-                                      name="input_y")  # 标签
+                                      name="input_y")  # 标签[Batch, class_num]
         self.keep_prob = tf.placeholder(tf.float32, name="keep_prob")  # 激活概率
         self.pretrain_word_vecs = None  # 预训练语言模型
 
@@ -162,6 +162,7 @@ class TFBaseClassifier(object):
             feed_dict=feed_dict)
         # 进度条右侧打印loss和acc信息
         pbar.set_postfix(loss=loss, acc=acc)
+        return step
 
     def train(self, sess, graph, vocab_processor, save_path, x_train, y_train,
               x_dev, y_dev):
@@ -206,9 +207,7 @@ class TFBaseClassifier(object):
             # zip(*)逆向解压
             x_batch, y_batch = zip(*batch)
             # 单步训练
-            self.train_onestep(sess, x_batch, y_batch, b_pbar)
-            # 获取当前步数
-            current_step = tf.train.global_step(sess, self.global_step)
+            current_step = self.train_onestep(sess, x_batch, y_batch, b_pbar)
             # 进度条update
             if idx % n_batches == 0:
                 b_pbar = tqdm(total=n_batches)
@@ -224,9 +223,7 @@ class TFBaseClassifier(object):
                 logging.info("Saved model&vocab to {}\n".format(path))
             # 评估
             if current_step % self.flags.evaluate_every == 0:
-                logging.info("\nEvaluation:")
                 curr_acc = self.eval(sess, x_dev, y_dev)
-                logging.info("")
                 # 不再收敛，则停止
                 if abs(curr_acc -
                        last_acc) <= self.flags.acc_convergence_score:
@@ -255,6 +252,7 @@ class TFBaseClassifier(object):
         }
 
         # 执行会话
+        logging.info("\nEvaluation:")
         summary_op, step, loss, accuracy = sess.run([
             self.summary_op, self.global_step, self.loss, self.accuracy_update
         ], feed_dict)
@@ -262,7 +260,7 @@ class TFBaseClassifier(object):
         # 保存log
         self.summary_writer.add_summary(summary_op, step)
 
-        logging.info("loss {:g}, test acc {:g}".format(loss, accuracy))
+        logging.info("loss {:g}, test acc {:g}\n".format(loss, accuracy))
 
         return accuracy
 
