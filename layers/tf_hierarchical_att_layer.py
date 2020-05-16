@@ -59,19 +59,20 @@ class TFHierarchicalAttLayer(TFBaseLayer):
                              [-1, self.max_seq_len, self.word_emb_size])
 
             # sents encoding: [B*T_s, T_w, emb_size] -> [B*T_s, H]
-            enc = self._encoding(enc)
+            enc = self._encoding(enc, "sent")
 
             # split: [B*T_s, H] -> [B, T_s, H]
             enc = tf.reshape(enc, [-1, self.max_doc_len, self.hidden_size])
 
             # doc encoding: [B, T_s, H] -> [B, H]
-            enc = self._encoding(enc)
+            enc = self._encoding(enc, "doc")
 
             return enc
 
-    def _encoding(self, layer_hidden):
+    def _encoding(self, layer_hidden, scope):
         # lstm encoding
-        with tf.variable_scope(self.rnn_type + "Layer", reuse=tf.AUTO_REUSE):
+        with tf.variable_scope(scope + "_" + self.rnn_type + "Layer",
+                               reuse=tf.AUTO_REUSE):
             # forward LSTM
             fw_lstm_cell = self._rnn_cell(self.hidden_size)
             # backward LSTM
