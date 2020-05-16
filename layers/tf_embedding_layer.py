@@ -14,7 +14,8 @@ class TFEmbeddingLayer(TFBaseLayer):
                  vocab_size,
                  emb_size,
                  pretrain_word_vecs=None,
-                 word_emb_trainable=True):
+                 word_emb_trainable=True,
+                 scope="word_embedding"):
         '''初始化
 
         Args:
@@ -30,12 +31,13 @@ class TFEmbeddingLayer(TFBaseLayer):
         self.emb_size = emb_size
         self.pretrain_word_vecs = pretrain_word_vecs
         self.word_emb_trainable = word_emb_trainable
+        self.scope = scope
 
     def build(self):
         '''embedding layer
         '''
         # 词嵌入层
-        with tf.name_scope("word_embedding"):
+        with tf.variable_scope(self.scope, reuse=tf.AUTO_REUSE):
             embedding = None
             # 利用预训练的词向量初始化词嵌入矩阵
             if self.pretrain_word_vecs is not None:
@@ -51,6 +53,6 @@ class TFEmbeddingLayer(TFBaseLayer):
             # 查询词嵌入矩阵
             # 将输入词索引转成词向量
             # 输出shape：[batch_size, seq_len, emb_size]
-            self.output = tf.nn.embedding_lookup(embedding, self.input_x)
+            output = tf.nn.embedding_lookup(embedding, self.input_x)
 
-            return self.output
+            return output

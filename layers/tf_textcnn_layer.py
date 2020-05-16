@@ -10,7 +10,12 @@ class TFTextCNNLayer(TFBaseLayer):
     '''TextCNN Layer
     底层embedding layer, 再接多窗口多核卷积，最后最大池化max-pooling
     '''
-    def __init__(self, in_hidden, max_seq_len, filter_sizes, num_filters):
+    def __init__(self,
+                 in_hidden,
+                 max_seq_len,
+                 filter_sizes,
+                 num_filters,
+                 scope="text_cnn"):
         '''TextCNN初始化
 
         Args:
@@ -27,6 +32,7 @@ class TFTextCNNLayer(TFBaseLayer):
         self.max_seq_len = max_seq_len
         self.filter_sizes = filter_sizes
         self.num_filters = num_filters
+        self.scope = scope
 
     def build(self):
         '''TextCNN Layer层
@@ -42,7 +48,8 @@ class TFTextCNNLayer(TFBaseLayer):
         pooled_outputs = []
         # 遍历卷积核：可以同时用3、4、5等多个窗口
         for i, filter_size in enumerate(self.filter_sizes):
-            with tf.name_scope("conv-maxpool-%s" % filter_size):
+            with tf.variable_scope(self.scope + "-" + str(filter_size),
+                                   reuse=tf.AUTO_REUSE):
                 # 卷积核shape：[卷积核大小，宽度，输入通数，输出通道数]
                 filter_shape = [
                     filter_size, self.emb_size, 1, self.num_filters
@@ -84,6 +91,6 @@ class TFTextCNNLayer(TFBaseLayer):
         # [batch, emb_size, in_channel_num, out_channel_num]
         h_pool = tf.concat(pooled_outputs, 3)
         # reshape: [batch, feature_dim]
-        self.output = tf.reshape(h_pool, [-1, feature_dim])
+        output = tf.reshape(h_pool, [-1, feature_dim])
 
-        return self.output
+        return output

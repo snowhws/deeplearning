@@ -16,8 +16,15 @@ class TFClassifierLayer(TFBaseLayer):
     2、支持Multi-Class-Dense&Multi-Class-Sparse&Multi-label
     3、支持加dropout层，大部分模型最后会带一层dropout layer
     '''
-    def __init__(self, training, in_hidden, cls_num, cls_type, input_y,
-                 keep_prob, l2_reg_lambda):
+    def __init__(self,
+                 training,
+                 in_hidden,
+                 cls_num,
+                 cls_type,
+                 input_y,
+                 keep_prob,
+                 l2_reg_lambda,
+                 scope="classifier"):
         '''初始化
 
         Args:
@@ -37,6 +44,7 @@ class TFClassifierLayer(TFBaseLayer):
         self.input_y = input_y
         self.keep_prob = keep_prob
         self.l2_reg_lambda = l2_reg_lambda
+        self.scope = scope
 
     def build(self):
         '''分类层，分训练模式与推理模式
@@ -46,17 +54,15 @@ class TFClassifierLayer(TFBaseLayer):
             logits: output层
             loss: 损失
         '''
-        dropout_layer = None
-        # add dropout before classify layer
-        with tf.name_scope('dropout_layer'):
-            dropout_layer = tf.layers.dropout(self.in_hidden,
-                                              self.keep_prob,
-                                              training=self.training)
         # 定义l2损失
         l2_loss = tf.constant(0.0)
         # fc layer
         probability = None
-        with tf.name_scope("fc_output_layer"):
+        with tf.variable_scope(self.scope, reuse=tf.AUTO_REUSE):
+            # add dropout before classify layer
+            dropout_layer = tf.layers.dropout(self.in_hidden,
+                                              self.keep_prob,
+                                              training=self.training)
             W = tf.get_variable(
                 "W",
                 shape=[self.hidden_size, self.cls_num],
