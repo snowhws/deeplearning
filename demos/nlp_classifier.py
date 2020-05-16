@@ -45,7 +45,7 @@ def get_flags():
     tf.flags.DEFINE_boolean("training", True, "True or False(default: True)")
     # 样本集合相关参数
     tf.flags.DEFINE_float(
-        "dev_sample_percentage", .2,
+        "dev_sample_percentage", .1,
         "Percentage of the training data to use for validation")
     tf.flags.DEFINE_string(
         "positive_data_file",

@@ -6,6 +6,7 @@ import os
 import sys
 import datetime
 import logging
+from tqdm import tqdm
 sys.path.append(os.getcwd() + "/../../")
 from utils.tf_utils import TFUtils
 import tensorflow as tf
@@ -78,8 +79,6 @@ class TFBaseClassifier(object):
         '''训练op
         设置梯度最大截断
         '''
-        # 全局训练步数
-        self.global_step = tf.Variable(0, name="global_step", trainable=False)
         # 优化器
         optimizer = self.get_optimizer()
         # 反向求梯度: 等价于compute_gradients
@@ -92,14 +91,12 @@ class TFBaseClassifier(object):
         self.train_op = optimizer.apply_gradients(zip(clip_gradients,
                                                       trainable_params),
                                                   global_step=self.global_step)
-        # 记录loss
-        tf.summary.scalar("loss", self.loss)
-        # 合并scalar的变量
-        self.summary_op = tf.summary.merge_all()
 
     def add_metrics(self):
         '''添加指标统计
         '''
+        # 全局训练步数
+        self.global_step = tf.Variable(0, name="global_step", trainable=False)
         # 获取结果
         self.get_predictions()
         # 精度
@@ -117,6 +114,10 @@ class TFBaseClassifier(object):
         tf.summary.scalar('precision', self.precision_update)
         tf.summary.scalar('recall', self.recall_update)
         tf.summary.scalar('accuracy', self.accuracy_update)
+        # 记录loss
+        tf.summary.scalar("loss", self.loss)
+        # 合并scalar的变量
+        self.summary_op = tf.summary.merge_all()
 
     def get_predictions(self):
         '''获取预测结果
@@ -138,13 +139,14 @@ class TFBaseClassifier(object):
             self.predictions = tf.cast(
                 tf.greater_equal(self.probability, topk_values), tf.float32)
 
-    def train_onestep(self, sess, x_batch, y_batch):
+    def train_onestep(self, sess, x_batch, y_batch, pbar):
         '''单步训练
 
         Args:
             sess: 会话
             x_batch: 输入batch
             y_batch: 标签batch
+            pbar: tqdm进度条
 
         Return:
             返回训练记录、损失和预测结果
@@ -155,17 +157,11 @@ class TFBaseClassifier(object):
             self.keep_prob: self.flags.keep_prob
         }
         # 运行会话
-        _, summary_op, step, loss, acc = sess.run([
-            self.train_op, self.summary_op, self.global_step, self.loss,
-            self.accuracy_update
-        ],
-                                                  feed_dict=feed_dict)
-        # 保存log
-        self.summary_writer.add_summary(summary_op, step)
-        # 打印acc等结果
-        time_str = datetime.datetime.now().isoformat()
-        logging.info("{}: step {}, loss {:g}, train acc {}".format(
-            time_str, step, loss, acc))
+        _, step, loss, acc = sess.run(
+            [self.train_op, self.global_step, self.loss, self.accuracy_update],
+            feed_dict=feed_dict)
+        # 进度条右侧打印loss和acc信息
+        pbar.set_postfix(loss=loss, acc=acc)
 
     def train(self, sess, graph, vocab_processor, save_path, x_train, y_train,
               x_dev, y_dev):
@@ -195,16 +191,30 @@ class TFBaseClassifier(object):
         batches = TFUtils.batch_iter(list(zip(x_train,
                                               y_train)), self.flags.batch_size,
                                      self.flags.num_epochs)
+        n_batches = int((len(y_train) - 1) / self.flags.batch_size) + 1
+        # Epoch训练进度条
+        e_pbar = tqdm(total=self.flags.num_epochs)
+        e_pbar.set_description("Progress of Epoches")
+        # Batch训练进度条
+        b_pbar = tqdm(total=n_batches)
+        b_pbar.set_description("Progress of Batches")
         # 自动停止条件
         last_acc = 0.0
         # 按batch训练
+        idx = 0
         for batch in batches:
             # zip(*)逆向解压
             x_batch, y_batch = zip(*batch)
             # 单步训练
-            self.train_onestep(sess, x_batch, y_batch)
+            self.train_onestep(sess, x_batch, y_batch, b_pbar)
             # 获取当前步数
             current_step = tf.train.global_step(sess, self.global_step)
+            # 进度条update
+            if idx % n_batches == 0:
+                b_pbar = tqdm(total=n_batches)
+                b_pbar.set_description("Progress of Batches")
+                e_pbar.update(1)
+            b_pbar.update(1)
             # 保存模型&词表
             if current_step % self.flags.checkpoint_every == 0:
                 path = self.saver.save(sess,
@@ -225,6 +235,10 @@ class TFBaseClassifier(object):
                                  str(curr_acc) + ", Stop training!")
                     break
                 last_acc = curr_acc
+            idx += 1
+        # 进度条关闭
+        b_pbar.close()
+        e_pbar.close()
 
     def eval(self, sess, x_batch, y_batch):
         '''验证模型
@@ -237,15 +251,18 @@ class TFBaseClassifier(object):
         feed_dict = {
             self.input_x: x_batch,
             self.input_y: y_batch,
-            self.keep_prob: 1.0  # 评估时候通过dropout设置不更新参数
+            self.keep_prob: 1.0  # 评估时dropout关闭
         }
 
         # 执行会话
-        step, loss, accuracy = sess.run(
-            [self.global_step, self.loss, self.accuracy], feed_dict)
-        time_str = datetime.datetime.now().isoformat()
-        logging.info("{}: step {}, loss {:g}, test acc {:g}".format(
-            time_str, step, loss, accuracy))
+        summary_op, step, loss, accuracy = sess.run([
+            self.summary_op, self.global_step, self.loss, self.accuracy_update
+        ], feed_dict)
+
+        # 保存log
+        self.summary_writer.add_summary(summary_op, step)
+
+        logging.info("loss {:g}, test acc {:g}".format(loss, accuracy))
 
         return accuracy
 

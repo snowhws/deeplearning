@@ -44,7 +44,7 @@ class TFTransformerClassifier(TFBaseClassifier):
                                             self.dropout_rate,
                                             training=self.flags.training)
         # Transformer Blocks
-        encoder = embedding_layer
+        encoder = embedding_layer  # [B, T, D]
         for i in range(self.flags.num_blocks):
             with tf.variable_scope("num_blocks_{}".format(i),
                                    reuse=tf.AUTO_REUSE):
@@ -60,13 +60,12 @@ class TFTransformerClassifier(TFBaseClassifier):
                     encoder,
                     [self.flags.hidden_size, self.flags.emb_size]).build()
 
-        # reshape
-        concat_layer = tf.reshape(
-            encoder, [-1, self.flags.max_seq_len * self.flags.emb_size])
+        # get max: [B, T, D] -> [B, D]
+        encoder = tf.reduce_mean(encoder, axis=1)
 
         # loss
         self.probability, self.logits, self.loss = TFClassifierLayer(
-            self.flags.training, concat_layer, self.flags.cls_num,
+            self.flags.training, encoder, self.flags.cls_num,
             self.flags.cls_type, self.input_y, self.flags.keep_prob,
             self.flags.l2_reg_lambda).build()
 

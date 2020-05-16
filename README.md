@@ -4,9 +4,7 @@
 这是一个快速搭建NLP、CV、推荐等DL方向的手脚架，包括基本的分类、回归、聚类、序列标注、双塔等常见模型的简洁实现。
 ```
 
-![Python版本](https://img.shields.io/badge/Python-2.7|3.7-blue) ![Tensorflow版本](https://img.shields.io/badge/Tensorflow-1.5.0|2.1.0-blue) ![https://img.shields.io/badge/pytorch-1.3.1%7C1.4.0-blue](https://img.shields.io/badge/pytorch-1.3.1|1.4.0-blue) ![](https://img.shields.io/badge/MacOS-10.15.4-blue)
-
-
+![Python版本](https://img.shields.io/badge/Python-2.7|3.7-blue) ![Tensorflow版本](https://img.shields.io/badge/Tensorflow-1.5.0|2.1.0-blue) ![https://img.shields.io/badge/pytorch-1.3.1%7C1.4.0-blue](https://img.shields.io/badge/pytorch-1.3.1|1.4.0-blue) ![](https://img.shields.io/badge/MacOS-10.15.4-blue)![tqdm库](https://img.shields.io/badge/tqdm-4.46.0-blue)
 
 ## 目录说明
 
