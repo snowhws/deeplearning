@@ -99,15 +99,12 @@ class TFClassifierLayer(TFBaseLayer):
                 # input_y: [batch, dense labels]
                 losses = tf.nn.softmax_cross_entropy_with_logits(
                     logits=self.logits, labels=labels)
-            #elif self.cls_type == "multi-class-sparse":
-            # one-hot类型稀疏表示标签
-            # input_y: [batch, one-hot labels]
-            # 取非零索引
-            #    labels = TFUtils.nonzero_indices(self.input_y)
-            #labels = tf.where(self.input_y)
-        #     losses = tf.nn.sparse_softmax_cross_entropy_with_logits(
-        #         logits=self.logits, labels=labels)
-        # 一个batch内loss取均值
+            elif self.cls_type == "multi-class-sparse":
+                # one-hot类型稀疏表示标签
+                labels = tf.argmax(self.input_y, axis=1)
+                losses = tf.nn.sparse_softmax_cross_entropy_with_logits(
+                    logits=self.logits, labels=labels)
+            # 一个batch内loss取均值
             loss = tf.reduce_mean(losses)
 
             return loss
