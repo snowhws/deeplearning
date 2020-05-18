@@ -26,13 +26,6 @@ logging.basicConfig(
 FLAGS = None
 
 
-def print_flags():
-    '''打印所有参数
-    '''
-    for key in tf.flags.FLAGS.flag_values_dict():
-        logging.info("FLAGS " + key + " : " + str(tf.flags.FLAGS[key].value))
-
-
 def get_flags():
     '''获取脚本输入参数
     '''
@@ -48,15 +41,13 @@ def get_flags():
         "dev_sample_percentage", .1,
         "Percentage of the training data to use for validation")
     tf.flags.DEFINE_string(
-        "positive_data_file",
-        os.path.join(current_path, "../corpus/nlp/english/rt-polarity.pos"),
-        "Data source for the positive data.(default: ../corpus/nlp/english/rt-polarity.pos)"
+        "data_file",
+        os.path.join(current_path, "../corpus/nlp/english/rt-polarity.all"),
+        "Data source for training and testing.(default: ../corpus/nlp/english/rt-polarity.all)"
     )
     tf.flags.DEFINE_string(
-        "negative_data_file",
-        os.path.join(current_path, "../corpus/nlp/english/rt-polarity.neg"),
-        "Data source for the negative data.(default: ../corpus/nlp/english/rt-polarity.neg)"
-    )
+        "data_type", "shorttext",
+        "Data Type, shorttext/longtext_with_title(default: shorttext)")
 
     # 分类器公共参数
     tf.flags.DEFINE_integer("cls_num", 2, "size of classes(default: 2)")
@@ -72,6 +63,8 @@ def get_flags():
                             "Dimensionality of word embedding (default: 128)")
     tf.flags.DEFINE_integer("max_seq_len", 128,
                             "max len of input seq(default: 128)")
+    tf.flags.DEFINE_integer("max_doc_len", 50,
+                            "max sents num of a document(default: 50)")
     tf.flags.DEFINE_boolean(
         "word_emb_trainable", True,
         "pretrain word embedding trainable(default: True)")
@@ -142,7 +135,6 @@ def main(argv=None):
     exe.add_processor(PreProcessor())  # 样本预处理
     exe.add_processor(GraphProcessor())  # 构建模型
     exe.add_processor(SessionProcessor())  # 创建会话
-    print_flags()
     # 执行
     exe.run()
 

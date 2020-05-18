@@ -61,7 +61,7 @@ class TFBILSTMAttLayer(TFBaseLayer):
                 outputs, current_state = tf.nn.bidirectional_dynamic_rnn(
                     fw_lstm_cell,
                     bw_lstm_cell,
-                    layer_hidden,  # 第一层输入是word_emb，第二层输入是上一层双向的拼接隐层
+                    layer_hidden,
                     dtype=tf.float32,
                     scope=self.rnn_type + str(idx))
 

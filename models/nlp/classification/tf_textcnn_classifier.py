@@ -5,7 +5,6 @@
 import os
 import sys
 import logging
-sys.path.append(os.getcwd() + "/../../")
 import tensorflow as tf
 from tf_base_classifier import TFBaseClassifier
 from layers.tf_embedding_layer import TFEmbeddingLayer

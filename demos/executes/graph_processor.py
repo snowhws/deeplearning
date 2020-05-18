@@ -4,12 +4,13 @@
 
 import os
 import sys
-sys.path.append(os.getcwd() + "/../../")
 import tensorflow as tf
 import numpy as np
 from models.nlp.classification.tf_bilstmatt_classifier import TFBILSTMATTClassifier
 from models.nlp.classification.tf_textcnn_classifier import TFTextCNNClassifier
 from models.nlp.classification.tf_transformer_classifier import TFTransformerClassifier
+from models.nlp.classification.tf_hierarchical_att_classifier import TFHierarchicalAttClassifier
+from models.nlp.classification.tf_longshort_mixture_classifier import TFLongShortMixtureClassifier
 
 
 class GraphProcessor(object):
@@ -23,7 +24,6 @@ class GraphProcessor(object):
         '''
         # 获取前序processor结果
         flags = params["INIT"]
-        x_train, y_train, vocab_processor, x_dev, y_dev = params["PRE"]
         # 创建图
         graph = tf.Graph()
         # 构图
@@ -36,6 +36,10 @@ class GraphProcessor(object):
                 model = TFBILSTMATTClassifier(flags).build_model()
             elif flags.task_name == "Transformer":
                 model = TFTransformerClassifier(flags).build_model()
+            elif flags.task_name == "HierarchicalAtt":
+                model = TFHierarchicalAttClassifier(flags).build_model()
+            elif flags.task_name == "LongShortMixture":
+                model = TFLongShortMixtureClassifier(flags).build_model()
             # 添加统计指标
             model.add_metrics()
             # 添加训练优化器等

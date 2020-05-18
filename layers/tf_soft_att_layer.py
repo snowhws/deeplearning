@@ -82,8 +82,8 @@ class TFSoftAttLayer(TFBaseLayer):
             att_expand = tf.expand_dims(att_alpha, -1)
             # 注意是点乘: [B, T, H] * [B, T, 1] = [B, T, H]
             att_ah = self.in_hidden * att_expand
-            # reduce_sum, axis=1: [B, T, H] -> [B, H]
-            output = tf.reduce_sum(att_ah, axis=1)
+            # max pooling, axis=1: [B, T, H] -> [B, H]
+            output = tf.reduce_max(att_ah, axis=1)
 
             # [Batch, In_Hidden_Size]
-            return self.output
+            return output

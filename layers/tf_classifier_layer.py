@@ -4,7 +4,6 @@
 
 import os
 import sys
-sys.path.append(os.getcwd() + "/../")
 from utils.tf_utils import TFUtils
 import tensorflow as tf
 from tf_base_layer import TFBaseLayer

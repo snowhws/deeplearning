@@ -17,11 +17,21 @@ run_bilstm_att() {
 run_transformer() {
   python ./nlp_classifier.py \
     --task_name "Transformer" \
-    --num_blocks 1 \
-    --keep_prob 0.7 \
+    --num_blocks 2 \
     --max_seq_len 128
+}
+
+run_longshort() {
+  python ./nlp_classifier.py \
+    --task_name "LongShortMixture" \
+    --data_file "../corpus/nlp/chinese/news.samples" \
+    --data_type "longtext_with_title" \
+    --cls_num 11 \
+    --max_doc_len 10 \
+    --max_seq_len 20
 }
 
 #run_textcnn
 #run_bilstm_att
-run_transformer
+#run_transformer
+run_longshort

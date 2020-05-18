@@ -6,6 +6,7 @@
 - [3] [自然语言处理中的Attention机制总结](https://blog.csdn.net/hahajinbu/article/details/81940355 "自然语言处理中的Attention机制总结")
 - [4] [NLP中的各种MASK介绍](https://zhuanlan.zhihu.com/p/139595546)
 - [5] [Transformer中的mask](https://blog.csdn.net/qq_35169059/article/details/101678207)
+- [6] [bidirecitonal_dynamic_rnn中sequence_length的理解](https://blog.csdn.net/dunlongzun8445/article/details/89454610)
 
 ## 实现参考
 - [1] [BILSTMAtt参考：Attention-Based Bidirectional Long Short-Term Memory Networks for Relation Classification](https://www.aclweb.org/anthology/P16-2034/ "Attention-Based Bidirectional Long Short-Term Memory Networks for Relation Classification")

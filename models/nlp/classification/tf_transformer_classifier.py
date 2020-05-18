@@ -4,7 +4,6 @@
 
 import os
 import sys
-sys.path.append(os.getcwd() + "/../../")
 import tensorflow as tf
 from tf_base_classifier import TFBaseClassifier
 from layers.tf_embedding_layer import TFEmbeddingLayer
@@ -60,8 +59,8 @@ class TFTransformerClassifier(TFBaseClassifier):
                     encoder,
                     [self.flags.hidden_size, self.flags.emb_size]).build()
 
-        # get max: [B, T, D] -> [B, D]
-        encoder = tf.reduce_mean(encoder, axis=1)
+        # mean or max pooling: [B, T, D] -> [B, D]
+        encoder = tf.reduce_max(encoder, axis=1)
 
         # loss
         self.probability, self.logits, self.loss = TFClassifierLayer(

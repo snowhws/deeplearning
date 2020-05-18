@@ -10,12 +10,16 @@
 
 ```shell
 .
-|____README.md
-|____nlp
-| |____english
-| | |____rt-polarity.neg					# 英文影评负样本
-| | |____rt-polarity.pos					# 英文影评正样本
-| |____chinese
+├── README.md
+└── nlp
+    ├── chinese
+    │   ├── news.samples		# 11个类的新闻样本，每个类目约2k条
+    ├── english
+    │   ├── rt-polarity.all	# 影评2分类样本
+    │   ├── rt-polarity.neg
+    │   └── rt-polarity.pos
+    └── scripts
+        └── extract_news_sample.py
 ```
 
 ### CV

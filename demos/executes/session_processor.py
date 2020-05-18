@@ -25,7 +25,8 @@ class SessionProcessor(object):
         # 获取前序processor结果
         flags = params["INIT"]
         model, graph = params["GRAPH"]
-        x_train, y_train, vocab_processor, x_dev, y_dev = params["PRE"]
+        train_tuple, vocab_processor, test_tuple = params["PRE"]
+
         # 保存目录
         timestamp = "{0:%Y-%m-%d_%H-%M-%S/}".format(datetime.datetime.now())
         self.save_path = os.path.abspath(
@@ -48,7 +49,7 @@ class SessionProcessor(object):
             # 训练or预测
             if flags.training:
                 model.train(sess, graph, vocab_processor, self.save_path,
-                            x_train, y_train, x_dev, y_dev)
+                            train_tuple, test_tuple)
             else:
                 model.infer()
             # 关闭session节省资源

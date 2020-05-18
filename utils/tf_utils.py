@@ -37,43 +37,106 @@ class TFUtils(object):
         return indices
 
     @staticmethod
-    def preprocess(strs):
-        '''字符串预处理
+    def tokenizer_fn(strs):
+        '''按空格切分，语料需要事先处理好
         '''
-        strs = strs.strip().rstrip().lower()
-        return strs
+        for line in strs:
+            yield line.split()
 
     @staticmethod
-    def load_data_and_labels(positive_data_file, negative_data_file):
-        '''加载样本、分词、打label
+    def one_hot_emb(idx, cls_num):
+        '''生成one-hot表示的数组
+        '''
+        one_hot = []
+        for i in range(cls_num):
+            if i == idx:
+                one_hot.append(1)
+            else:
+                one_hot.append(0)
+        return one_hot
+
+    @staticmethod
+    def preprocess(strs, vocab_set, seg_sent=False, encoding="utf-8"):
+        '''字符串预处理
+        '''
+        seg_dict = set([".", ";", "?", "？", "!", "。", "；", "！"])
+        text = strs.encode(encoding, "ignore").strip().rstrip().lower()
+        words = text.split()
+        vocab_set |= set(words)
+        if seg_sent:
+            sents = []
+            sent = ""
+            for word in words:
+                sent += word + " "
+                if word in seg_dict:
+                    sents.append(sent.rstrip())
+                    sent = ""
+            if len(sent) > 2:
+                sents.append(sent.rstrip())
+            return sents
+        return text
+
+    @staticmethod
+    def load_shorttext_data(shorttext_file, encoding='utf-8'):
+        '''加载正负样本，样本每行为分词后的句子。
 
         Returns:
-            words and labels.
+            输出vocab_set, texts, labels
         '''
-        # Load data from files
         # file => array
-        positive_examples = list(
-            io.open(positive_data_file, "r", encoding='utf-8').readlines())
-        positive_examples = [TFUtils.preprocess(s) for s in positive_examples]
-        negative_examples = list(
-            io.open(negative_data_file, "r", encoding='utf-8').readlines())
-        negative_examples = [TFUtils.preprocess(s) for s in negative_examples]
-        # Split by words
-        texts = positive_examples + negative_examples
-        # Generate labels
-        positive_labels = [[0, 1] for _ in positive_examples]
-        negative_labels = [[1, 0] for _ in negative_examples]
-        # 按列拼接
-        labels = np.concatenate([positive_labels, negative_labels], 0)
-        # format is: [text, labels]
-        return [texts, labels]
+        examples = list(
+            io.open(shorttext_file, "r", encoding=encoding).readlines())
+        # preprocess
+        vocab_set = set()
+        samples = [TFUtils.preprocess(s, vocab_set) for s in examples]
+        # labels, sents
+        labels = []
+        sents = []
+        for sample in samples:
+            label, sent = sample.split("\t")
+            labels.append(TFUtils.one_hot_emb(int(label), cls_num))
+            sents.append(sent)
+        return vocab_set, sents, labels
+
+    @staticmethod
+    def load_longtext_with_title_data(longtext_file,
+                                      cls_num,
+                                      encoding='utf-8'):
+        '''输入[1(class), title, content]
+
+        Returns:
+            输出vocab_set, titles, contents, labels
+            contents is an array [sent, ...]
+        '''
+        # file => array
+        samples = list(
+            io.open(longtext_file, 'r', encoding=encoding).readlines())
+        # labels, titles, contents
+        vocab_set = set()
+        labels = []
+        titles = []
+        contents = []
+        for sample in samples:
+            # split sample
+            label, title, content = sample.split("\t")
+            # preprocess
+            title = TFUtils.preprocess(title, vocab_set)
+            sents = TFUtils.preprocess(content, vocab_set, seg_sent=True)
+            # add
+            labels.append(TFUtils.one_hot_emb(int(label), cls_num))
+            titles.append(title)
+            contents.append(sents)
+        return vocab_set, titles, contents, labels
 
     @staticmethod
     def batch_iter(data, batch_size, num_epochs, shuffle=True):
         '''Generates a batch iterator for a dataset.
         '''
         # 所有数据
-        data = np.array(data)
+        if len(data) == 2:
+            data = np.array(list(zip(data[0], data[1])))
+        elif len(data) == 3:
+            data = np.array(list(zip(data[0], data[1], data[2])))
         data_size = len(data)
         # batch个数计算
         num_batches_per_epoch = int((len(data) - 1) / batch_size) + 1
@@ -88,3 +151,17 @@ class TFUtils(object):
                 end_index = min((batch_index + 1) * batch_size, data_size)
                 # 使用yield动态返回batch
                 yield data[start_index:end_index]
+
+    @staticmethod
+    def cut_and_padding_2D(matrix, row_lens, col_lens):
+        '''补齐二维数组
+        '''
+        # cut截断
+        if len(matrix) >= row_lens:
+            return matrix[:row_lens]
+        # padding
+        row = np.array([0 for i in range(col_lens)])
+        count = row_lens - len(matrix)
+        for i in range(count):
+            matrix = np.insert(matrix, -1, values=row, axis=0)
+        return matrix

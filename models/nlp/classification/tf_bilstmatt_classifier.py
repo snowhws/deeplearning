@@ -4,7 +4,6 @@
 
 import os
 import sys
-sys.path.append(os.getcwd() + "/../../")
 import tensorflow as tf
 from tf_base_classifier import TFBaseClassifier
 from layers.tf_embedding_layer import TFEmbeddingLayer
@@ -28,9 +27,11 @@ class TFBILSTMATTClassifier(TFBaseClassifier):
     def build_model(self):
         '''构建模型
         '''
+        # [B, T_w] -> [B, T, D]
         embedding_layer = TFEmbeddingLayer(self.input_x, self.flags.vocab_size,
                                            self.flags.emb_size,
                                            self.pretrain_word_vecs).build()
+        # [B, T, D] -> [B, H]
         bilstmatt_layer = TFBILSTMAttLayer(embedding_layer, self.hidden_sizes,
                                            self.flags.attention_size,
                                            self.flags.keep_prob,

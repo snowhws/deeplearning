@@ -7,7 +7,6 @@ import sys
 import datetime
 import logging
 from tqdm import tqdm
-sys.path.append(os.getcwd() + "/../../")
 from utils.tf_utils import TFUtils
 import tensorflow as tf
 
@@ -28,8 +27,13 @@ class TFBaseClassifier(object):
         self.flags = flags
 
         # 输入&占位符
-        self.input_x = tf.placeholder(
-            tf.int32, [None, None], name="input_x")  # 输入[Batch, word_id_list]
+        if flags.data_type == "shorttext" or flags.data_type == "longtext_with_title":
+            self.input_x = tf.placeholder(
+                tf.int32, [None, None],
+                name="input_x")  # 输入[Batch, word_id_list]
+        if flags.data_type == "longtext_with_title":  # 由句子序列组成的长文本[B, T_s, T_w]
+            self.input_c = tf.placeholder(tf.int32, [None, None, None],
+                                          name="input_c")
         self.input_y = tf.placeholder(tf.float32, [None, self.flags.cls_num],
                                       name="input_y")  # 标签[Batch, class_num]
         self.keep_prob = tf.placeholder(tf.float32, name="keep_prob")  # 激活概率
@@ -139,33 +143,42 @@ class TFBaseClassifier(object):
             self.predictions = tf.cast(
                 tf.greater_equal(self.probability, topk_values), tf.float32)
 
-    def train_onestep(self, sess, x_batch, y_batch, pbar):
+    def train_onestep(self, sess, train_tuple, pbar):
         '''单步训练
 
         Args:
             sess: 会话
-            x_batch: 输入batch
-            y_batch: 标签batch
+            train_tuple: 训练样本(x, ..., y)
             pbar: tqdm进度条
 
         Return:
             返回训练记录、损失和预测结果
         '''
-        feed_dict = {
-            self.input_x: x_batch,
-            self.input_y: y_batch,
-            self.keep_prob: self.flags.keep_prob
-        }
+        feed_dict = {}
+        if self.flags.data_type == "shorttext":
+            feed_dict = {
+                self.input_x: train_tuple[0],
+                self.input_y: train_tuple[1],
+                self.keep_prob: self.flags.keep_prob
+            }
+        elif self.flags.data_type == "longtext_with_title":
+            feed_dict = {
+                self.input_x: train_tuple[0],
+                self.input_c: train_tuple[1],
+                self.input_y: train_tuple[2],
+                self.keep_prob: self.flags.keep_prob
+            }
         # 运行会话
         _, step, loss, acc = sess.run(
             [self.train_op, self.global_step, self.loss, self.accuracy_update],
             feed_dict=feed_dict)
         # 进度条右侧打印loss和acc信息
         pbar.set_postfix(loss=loss, acc=acc)
+
         return step
 
-    def train(self, sess, graph, vocab_processor, save_path, x_train, y_train,
-              x_dev, y_dev):
+    def train(self, sess, graph, vocab_processor, save_path, train_tuple,
+              test_tuple):
         '''整体训练入口
 
         Args:
@@ -173,10 +186,8 @@ class TFBaseClassifier(object):
             graph: 整个图
             vocab_processor: 词表处理器
             save_path: 模型保存目录
-            x_train: 训练集输入
-            y_train: 训练集标签
-            x_dev: 评估集输入
-            y_dev: 评估集标签
+            train_tuple: 训练集
+            test_tuple: 评估集
         '''
         # 初始化日志写入器
         timestamp = "{0:%Y-%m-%d_%H-%M-%S/}".format(datetime.datetime.now())
@@ -189,10 +200,9 @@ class TFBaseClassifier(object):
         if not os.path.exists(checkpoint_dir):
             os.makedirs(checkpoint_dir)
         # 生成batch, zip会将两个数组遍历打包成对元组
-        batches = TFUtils.batch_iter(list(zip(x_train,
-                                              y_train)), self.flags.batch_size,
+        batches = TFUtils.batch_iter(train_tuple, self.flags.batch_size,
                                      self.flags.num_epochs)
-        n_batches = int((len(y_train) - 1) / self.flags.batch_size) + 1
+        n_batches = int((len(train_tuple[0]) - 1) / self.flags.batch_size) + 1
         # Epoch训练进度条
         e_pbar = tqdm(total=self.flags.num_epochs)
         e_pbar.set_description("Progress of Epoches")
@@ -205,9 +215,9 @@ class TFBaseClassifier(object):
         idx = 0
         for batch in batches:
             # zip(*)逆向解压
-            x_batch, y_batch = zip(*batch)
+            batch_tuple = zip(*batch)
             # 单步训练
-            current_step = self.train_onestep(sess, x_batch, y_batch, b_pbar)
+            current_step = self.train_onestep(sess, batch_tuple, b_pbar)
             # 进度条update
             if idx % n_batches == 0:
                 b_pbar = tqdm(total=n_batches)
@@ -223,7 +233,7 @@ class TFBaseClassifier(object):
                 logging.info("Saved model&vocab to {}\n".format(path))
             # 评估
             if current_step % self.flags.evaluate_every == 0:
-                curr_acc = self.eval(sess, x_dev, y_dev)
+                curr_acc = self.eval(sess, test_tuple)
                 # 不再收敛，则停止
                 if abs(curr_acc -
                        last_acc) <= self.flags.acc_convergence_score:
@@ -237,19 +247,27 @@ class TFBaseClassifier(object):
         b_pbar.close()
         e_pbar.close()
 
-    def eval(self, sess, x_batch, y_batch):
+    def eval(self, sess, test_tuple):
         '''验证模型
 
         Args:
             sess: 会话
-            x_batch: 输入样本
-            y_batch: 输入标签
+            test_tuple: 测试样例(x, ..., y)
         '''
-        feed_dict = {
-            self.input_x: x_batch,
-            self.input_y: y_batch,
-            self.keep_prob: 1.0  # 评估时dropout关闭
-        }
+        feed_dict = {}
+        if self.flags.data_type == "shorttext":
+            feed_dict = {
+                self.input_x: test_tuple[0],
+                self.input_y: test_tuple[1],
+                self.keep_prob: 1.0  # 评估时dropout关闭
+            }
+        elif self.flags.data_type == "longtext_with_title":
+            feed_dict = {
+                self.input_x: test_tuple[0],
+                self.input_c: test_tuple[1],
+                self.input_y: test_tuple[2],
+                self.keep_prob: 1.0  # 评估时dropout关闭
+            }
 
         # 执行会话
         logging.info("\nEvaluation:")
@@ -264,12 +282,10 @@ class TFBaseClassifier(object):
 
         return accuracy
 
-    def infer(self, sess, x_batch, y_batch):
+    def infer(self, sess, test_tuple):
         '''验证模型
 
         Args:
             sess: 会话
-            x_batch: 输入样本
-            y_batch: 输入标签
         '''
-        self.eval(sess, x_batch, y_batch)
+        self.eval(sess, test_tuple)
