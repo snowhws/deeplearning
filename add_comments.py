@@ -41,5 +41,9 @@ while True:
         print add_space(line) + "# 模型层"
     elif line.find(" tf_utils.py") != -1:
         print add_space(line) + "# 工具类"
+    elif line.find(" run.sh") != -1:
+        print add_space(line) + "# 执行入口"
+    elif line.find(" save_models") != -1:
+        print add_space(line) + "# 模型保存地址"
     else:
         print line

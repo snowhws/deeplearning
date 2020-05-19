@@ -56,6 +56,23 @@ class TFUtils(object):
         return one_hot
 
     @staticmethod
+    def get_sequence_lens(sequences):
+        '''获取一个batch中序列的真实长度，提供给bilstm加速
+
+        Args:
+            sequences: [B, T, D]
+
+        Returns:
+            [B]
+        '''
+        # [B, T, D] -> [B, T]
+        used = tf.sign(tf.reduce_max(tf.abs(sequences), axis=2))
+        # [B, T] -> [B]
+        lens = tf.reduce_sum(used, axis=1)
+
+        return tf.cast(lens, tf.int32)
+
+    @staticmethod
     def preprocess(strs, vocab_set, seg_sent=False, encoding="utf-8"):
         '''字符串预处理
         '''

@@ -3,6 +3,7 @@
 # @author: wensong
 
 import tensorflow as tf
+from utils.tf_utils import TFUtils
 from tf_base_layer import TFBaseLayer
 from tf_soft_att_layer import TFSoftAttLayer
 
@@ -83,6 +84,7 @@ class TFHierarchicalAttLayer(TFBaseLayer):
                 fw_lstm_cell,
                 bw_lstm_cell,
                 layer_hidden,
+                sequence_length=TFUtils.get_sequence_lens(layer_hidden),
                 dtype=tf.float32,
                 scope=self.rnn_type)
 
