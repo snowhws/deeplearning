@@ -73,6 +73,13 @@ class TFUtils(object):
         return tf.cast(lens, tf.int32)
 
     @staticmethod
+    def save_vocab(vocab_processor, path):
+        fw = open(path)
+        for word in vocab_processor.vocabulary_._reverse_mapping:
+            fw.write(word + "\n")
+        fw.close()
+
+    @staticmethod
     def preprocess(strs, vocab_set, seg_sent=False, encoding="utf-8"):
         '''字符串预处理
         '''
