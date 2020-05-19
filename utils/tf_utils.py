@@ -74,7 +74,7 @@ class TFUtils(object):
 
     @staticmethod
     def save_vocab(vocab_processor, path):
-        fw = open(path)
+        fw = open(path, "w")
         for word in vocab_processor.vocabulary_._reverse_mapping:
             fw.write(word + "\n")
         fw.close()
