@@ -11,24 +11,26 @@
 <figure><table>
 <thead>
 <tr>
-  <th>类型</th><th>模型</th><th>说明</th><th>文档</th>
+  <th>任务划分</th><th>模型</th><th>说明</th>
   </tr>
 </thead>
 <tbody>
   <tr>
-    <td rowspan="4">NLP-分类</td>
+    <td rowspan="4"><a href="https://github.com/snowhws/deeplearning/tree/master/models">NLP-分类器</a></td>
     <td>TextCNN</td>
-    <td>&nbsp;</td>
-    <td>&nbsp;</td>
+    <td>适合短文本，训练较快：<p>1、底层多窗口多核CNN。<p>2、上层max_pooling<p>3、最后softmax</td>
   </tr>
   <tr>
-    <td>BILSTM-Attention</td><td>&nbsp;</td><td>&nbsp;</td>
+    <td>BILSTM-Attention</td>
+    <td>适合短文本，训练慢：<p>1、底层多层堆叠bilstm。<p>2、上层soft-attention<p>3、最后softmax</td>
   </tr>
   <tr>
-    <td>Transformer</td><td>&nbsp;</td><td>&nbsp;</td>
+    <td>Transformer</td>
+    <td>适合短文本，训练慢：<p>1、底层复现Attention is All your need中encoder部分。<p>2、上层max_pooling<p>3、最后softmax</td>
   </tr>
   <tr>
-    <td>Hierarchical Attention Network</td><td>适合长文本</td><td>&nbsp;</td>
+    <td>LongShortMixture</td>
+    <td>适合对新闻等长文本建模：<p>1、title经过bilstm-attention建模<p>2、content经过Hierarchical Attention Network建模<p>3、最后两者concat再softmax</td>
   </tr>
   <tr>
     <td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td>
@@ -37,12 +39,6 @@
 </table></figure>
 
 
-
-## 文档
-
-* [已实现NLP模型文档](https://github.com/snowhws/deeplearning/tree/master/models)
-
-  
 
 ## 代码框架
 
