@@ -6,6 +6,7 @@ import os
 import sys
 import datetime
 import logging
+import tf_metrics
 from tqdm import tqdm
 from utils.tf_utils import TFUtils
 import tensorflow as tf
@@ -104,14 +105,18 @@ class TFBaseClassifier(object):
         # 获取结果
         self.get_predictions()
         # 精度
-        self.precision, self.precision_update = tf.metrics.precision(
-            labels=self.input_y,
-            predictions=self.predictions,
-            name="precision")
+        self.precision, self.precision_update = tf_metrics.precision(
+            self.input_y,
+            self.predictions,
+            self.flags.cls_num, [i for i in range(self.flags.cls_num)],
+            average="micro")
         # 召回
-        self.recall, self.recall_update = tf.metrics.recall(
-            labels=self.input_y, predictions=self.predictions, name="recall")
-        # 正确率
+        self.recall, self.recall_update = tf_metrics.recall(
+            self.input_y,
+            self.predictions,
+            self.flags.cls_num, [i for i in range(self.flags.cls_num)],
+            average="micro")
+        # 准确率
         self.accuracy, self.accuracy_update = tf.metrics.accuracy(
             labels=self.input_y, predictions=self.predictions, name="accuracy")
         # add precision and recall to summary

@@ -4,7 +4,29 @@
 这是一个快速搭建NLP、CV、推荐等DL方向的手脚架，包括基本的分类、回归、聚类、序列标注、双塔等常见模型的简洁实现。
 ```
 
-![Python版本](https://img.shields.io/badge/Python-2.7|3.7-blue) ![go版本](https://img.shields.io/badge/go-1.14.2-blue) ![Tensorflow版本](https://img.shields.io/badge/Tensorflow-1.5.0|2.1.0-blue) ![https://img.shields.io/badge/pytorch-1.3.1%7C1.4.0-blue](https://img.shields.io/badge/pytorch-1.3.1|1.4.0-blue) ![](https://img.shields.io/badge/MacOS-10.15.4-blue)![tqdm库](https://img.shields.io/badge/tqdm-4.46.0-blue)
+![Python版本](https://img.shields.io/badge/Python-2.7|3.7-blue) ![go版本](https://img.shields.io/badge/go-1.14.2-blue) ![Tensorflow版本](https://img.shields.io/badge/Tensorflow-1.5.0|2.1.0-blue) ![https://img.shields.io/badge/pytorch-1.3.1%7C1.4.0-blue](https://img.shields.io/badge/pytorch-1.3.1|1.4.0-blue) ![多分类metrics统计库](https://img.shields.io/badge/tf__metrics-0.0.1-blue)![](https://img.shields.io/badge/MacOS-10.15.4-blue)![tqdm库](https://img.shields.io/badge/tqdm-4.46.0-blue)
+
+## 依赖库说明
+
+1. python2.7
+
+2. Go 1.14.2
+
+   由于go的优良并发性能，使用go做模型预测server部署。
+
+3. Tensorflow 1.5.0
+
+   核心代码使用tf 1.5实现。
+
+4. tf_metrics 0.0.1
+
+   tf官方的tf.metrics对precision/recall的统计依然停留在二分类上，无法支持多分类准召统计，所以采用第三方tf_metrics库。
+
+5. Tqdm 4.46.0
+
+   比较酷的进度条打印库，方便展示训练进度，同时会自动显示剩余预估训练时间。
+
+   
 
 ## 模型及文档
 
