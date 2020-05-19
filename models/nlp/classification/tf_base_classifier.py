@@ -52,10 +52,11 @@ class TFBaseClassifier(object):
         self.global_step = None  # 全局训练步数
 
         # 指标metrics
-        self.precision = None  # 精确度
-        self.recall = None  # 召回率
+        self.macro_precision = None  # 宏平均精度
+        self.macro_recall = None  # 宏平均召回率
+        self.micro_precision = None  # 微平均精确度
+        self.micro_recall = None  # 微平均召回率
         self.accuracy = None  # 正确率
-        self.f1_score = None  # f1-score
 
     def build_model(self):
         '''构建模型
@@ -104,14 +105,27 @@ class TFBaseClassifier(object):
         self.global_step = tf.Variable(0, name="global_step", trainable=False)
         # 获取结果
         self.get_predictions()
-        # 精度
-        self.precision, self.precision_update = tf_metrics.precision(
+        # macro-average: 所有类目P/R的均值，宏平均受小类目影响更大，可以反应小类目差距
+        # 宏平均-精度
+        self.macro_precision, self.macro_precision_update = tf_metrics.precision(
+            self.input_y,
+            self.predictions,
+            self.flags.cls_num, [i for i in range(self.flags.cls_num)],
+            average="macro")
+        # 宏平均-召回
+        self.macro_recall, self.macro_recall_update = tf_metrics.recall(
+            self.input_y,
+            self.predictions,
+            self.flags.cls_num, [i for i in range(self.flags.cls_num)],
+            average="macro")
+        # 微平均-精度
+        self.micro_precision, self.micro_precision_update = tf_metrics.precision(
             self.input_y,
             self.predictions,
             self.flags.cls_num, [i for i in range(self.flags.cls_num)],
             average="micro")
-        # 召回
-        self.recall, self.recall_update = tf_metrics.recall(
+        # 微平均-召回
+        self.micro_recall, self.micro_recall_update = tf_metrics.recall(
             self.input_y,
             self.predictions,
             self.flags.cls_num, [i for i in range(self.flags.cls_num)],
@@ -120,8 +134,10 @@ class TFBaseClassifier(object):
         self.accuracy, self.accuracy_update = tf.metrics.accuracy(
             labels=self.input_y, predictions=self.predictions, name="accuracy")
         # add precision and recall to summary
-        tf.summary.scalar('precision', self.precision_update)
-        tf.summary.scalar('recall', self.recall_update)
+        tf.summary.scalar('macro_precision', self.macro_precision_update)
+        tf.summary.scalar('macro_recall', self.macro_recall_update)
+        tf.summary.scalar('micro_precision', self.micro_precision_update)
+        tf.summary.scalar('micro_recall', self.micro_recall_update)
         tf.summary.scalar('accuracy', self.accuracy_update)
         # 记录loss
         tf.summary.scalar("loss", self.loss)
