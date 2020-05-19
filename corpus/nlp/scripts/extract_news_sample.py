@@ -24,7 +24,7 @@ class_dict = {
 }
 
 statistic_dict = {}
-for i in range(0, 11):
+for i in range(len(class_dict)):
     statistic_dict[i] = 0
 
 
@@ -36,13 +36,13 @@ def formatting(sample):
             sample["content"]) < MIN_CONTENT_LEN:
         return
     # filter by url
-    cls = 0
+    cls = -1
     for url in class_dict:
         if sample["url"].find(url) == -1:
             continue
         cls = class_dict[url]
         break
-    if cls == 0:
+    if cls == -1:
         return
     # filter by CLS_SAMPLE_NUM
     if statistic_dict[cls] >= CLS_SAMPLE_NUM:
