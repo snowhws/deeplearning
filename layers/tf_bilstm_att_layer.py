@@ -58,12 +58,14 @@ class TFBILSTMAttLayer(TFBaseLayer):
                 fw_lstm_cell = self._rnn_cell(hidden_size)
                 # backward LSTM
                 bw_lstm_cell = self._rnn_cell(hidden_size)
+                # LN归一
+                ln = TFLNLayer(layer_hidden).build()
                 # outputs: (output_fw, output_bw)
                 # 其中两个元素的维度都是[batch_size, max_time, hidden_size],
                 outputs, current_state = tf.nn.bidirectional_dynamic_rnn(
                     fw_lstm_cell,
                     bw_lstm_cell,
-                    layer_hidden,
+                    ln,
                     sequence_length=TFUtils.get_sequence_lens(layer_hidden),
                     dtype=tf.float32,
                     scope=self.rnn_type + str(idx))
@@ -91,9 +93,7 @@ class TFBILSTMAttLayer(TFBaseLayer):
             rnn_cell = tf.nn.rnn_cell.LSTMCell(num_units=hidden_size)
         else:
             rnn_cell = tf.nn.rnn_cell.GRUCell(num_units=hidden_size)
-        # LN归一
-        rnn_ln = TFLNLayer(rnn_cell).build()
         # dropout
         rnn_with_dp = tf.nn.rnn_cell.DropoutWrapper(
-            rnn_ln, output_keep_prob=self.keep_prob)
+            rnn_cell, output_keep_prob=self.keep_prob)
         return rnn_with_dp
