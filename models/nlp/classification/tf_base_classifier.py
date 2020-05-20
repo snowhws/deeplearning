@@ -50,6 +50,7 @@ class TFBaseClassifier(object):
         self.saver = None  # 保存器: checkpoint模型
         self.predictions = None  # 预测结果
         self.global_step = None  # 全局训练步数
+        self.dynamic_lr = None  # 动态学习率
 
         # 指标metrics
         self.macro_precision = None  # 宏平均精度
@@ -70,14 +71,22 @@ class TFBaseClassifier(object):
         Returns:
             返回优化器
         '''
+        # 学习率动态衰减
+        self.dynamic_lr = tf.train.exponential_decay(
+            learning_rate=self.flags.lr,
+            global_step=self.global_step,
+            decay_steps=self.flags.decay_steps,
+            decay_rate=self.flags.decay_rate)
+
+        # 优化器
         optimizer = None
 
         if self.flags.opt == "adam":
-            optimizer = tf.train.AdamOptimizer(self.flags.lr)
+            optimizer = tf.train.AdamOptimizer(self.dynamic_lr)
         if self.flags.opt == "rmsprop":
-            optimizer = tf.train.RMSPropOptimizer(self.flags.lr)
+            optimizer = tf.train.RMSPropOptimizer(self.dynamic_lr)
         if self.flags.opt == "sgd":
-            optimizer = tf.train.GradientDescentOptimizer(self.flags.lr)
+            optimizer = tf.train.GradientDescentOptimizer(self.dynamic_lr)
 
         return optimizer
 
@@ -191,6 +200,8 @@ class TFBaseClassifier(object):
                 self.input_y: train_tuple[2],
                 self.keep_prob: self.flags.keep_prob
             }
+        # 局部变量初始化
+        sess.run(tf.local_variables_initializer())
         # 运行会话
         _, step, loss, acc = sess.run(
             [self.train_op, self.global_step, self.loss, self.accuracy_update],
@@ -278,6 +289,7 @@ class TFBaseClassifier(object):
             sess: 会话
             test_tuple: 测试样例(x, ..., y)
         '''
+        labels = None
         feed_dict = {}
         if self.flags.data_type == "shorttext":
             feed_dict = {
@@ -285,6 +297,7 @@ class TFBaseClassifier(object):
                 self.input_y: test_tuple[1],
                 self.keep_prob: 1.0  # 评估时dropout关闭
             }
+            labels = test_tuple[1]
         elif self.flags.data_type == "longtext_with_title":
             feed_dict = {
                 self.input_x: test_tuple[0],
@@ -292,17 +305,24 @@ class TFBaseClassifier(object):
                 self.input_y: test_tuple[2],
                 self.keep_prob: 1.0  # 评估时dropout关闭
             }
+            labels = test_tuple[2]
 
+        # 局部变量初始化
+        sess.run(tf.local_variables_initializer())
         # 执行会话
         logging.info("\nEvaluation:")
-        summary_op, step, loss, accuracy = sess.run([
-            self.summary_op, self.global_step, self.loss, self.accuracy_update
+        summary_op, step, loss, accuracy, preds, lr = sess.run([
+            self.summary_op, self.global_step, self.loss, self.accuracy_update,
+            self.predictions, self.dynamic_lr
         ], feed_dict)
 
         # 保存log
         self.summary_writer.add_summary(summary_op, step)
-
-        logging.info("loss {:g}, test acc {:g}\n".format(loss, accuracy))
+        # 打印各分类信息
+        TFUtils.classification_report(labels, preds, self.flags.cls_num)
+        # 打印整体loss和acc
+        logging.info("step {:d}, lr {:g}, loss {:g}, test acc {:g}\n".format(
+            step, lr, loss, accuracy))
 
         return accuracy
 

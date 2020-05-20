@@ -4,21 +4,18 @@
 
 run_textcnn() {
   python ./nlp_classifier.py \
-    --task_name "TextCNN" \
-    --max_seq_len 128
+    --task_name "TextCNN" 
 }
 
 run_bilstm_att() {
   python ./nlp_classifier.py \
-    --task_name "BILSTMAtt" \
-    --max_seq_len 128
+    --task_name "BILSTMAtt"
 }
 
 run_transformer() {
   python ./nlp_classifier.py \
     --task_name "Transformer" \
-    --num_blocks 2 \
-    --max_seq_len 128
+    --num_blocks 2 
 }
 
 run_longshort() {

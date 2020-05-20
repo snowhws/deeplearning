@@ -90,12 +90,16 @@ def get_flags():
         "num_blocks", 1, "num of blocks of Transformer Encoder(default: 1)")
 
     # 训练相关参数
-    tf.flags.DEFINE_float("lr", 1e-3, "learning rate (default: 1e-3)")
+    tf.flags.DEFINE_float("lr", 5e-3, "learning rate(default: 5e-3)")
+    tf.flags.DEFINE_integer("decay_steps", 100,
+                            "decay steps for learning_rate(default: 100)")
+    tf.flags.DEFINE_float("decay_rate", 0.9,
+                          "decay_rate for learning_rate(default: 0.9)")
     tf.flags.DEFINE_integer("batch_size", 64, "Batch Size (default: 64)")
     tf.flags.DEFINE_integer("num_epochs", 100,
                             "Number of training epochs (default: 100)")
-    tf.flags.DEFINE_float("keep_prob", 0.5,
-                          "Dropout keep probability (default: 0.5)")
+    tf.flags.DEFINE_float("keep_prob", 0.1,
+                          "Dropout keep probability (default: 0.1)")
     tf.flags.DEFINE_float("l2_reg_lambda", 3e-3,
                           "L2 regularization lambda (default: 3e-3)")
     tf.flags.DEFINE_integer(

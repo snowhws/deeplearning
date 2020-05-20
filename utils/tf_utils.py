@@ -83,7 +83,8 @@ class TFUtils(object):
                 precision_dict[p_id][0] += 1.0
                 correct_all += 1.0
         acc = correct_all / count_all
-        logging.info("count: " + str(count_all))
+        logging.info("total: " + str(correct_all) + ", count: " +
+                     str(count_all))
         logging.info("acc: " + str(acc))
         macro_avg_p = 0.0
         for i in range(cls_num):
