@@ -108,31 +108,33 @@ class TFBaseClassifier(object):
         # macro-average: 所有类目P/R的均值，宏平均受小类目影响更大，可以反应小类目差距
         # 宏平均-精度
         self.macro_precision, self.macro_precision_update = tf_metrics.precision(
-            self.input_y,
-            self.predictions,
+            tf.argmax(self.input_y, axis=1),
+            tf.argmax(self.predictions, axis=1),
             self.flags.cls_num, [i for i in range(self.flags.cls_num)],
             average="macro")
         # 宏平均-召回
         self.macro_recall, self.macro_recall_update = tf_metrics.recall(
-            self.input_y,
-            self.predictions,
+            tf.argmax(self.input_y, axis=1),
+            tf.argmax(self.predictions, axis=1),
             self.flags.cls_num, [i for i in range(self.flags.cls_num)],
             average="macro")
         # 微平均-精度
         self.micro_precision, self.micro_precision_update = tf_metrics.precision(
-            self.input_y,
-            self.predictions,
+            tf.argmax(self.input_y, axis=1),
+            tf.argmax(self.predictions, axis=1),
             self.flags.cls_num, [i for i in range(self.flags.cls_num)],
             average="micro")
         # 微平均-召回
         self.micro_recall, self.micro_recall_update = tf_metrics.recall(
-            self.input_y,
-            self.predictions,
+            tf.argmax(self.input_y, axis=1),
+            tf.argmax(self.predictions, axis=1),
             self.flags.cls_num, [i for i in range(self.flags.cls_num)],
             average="micro")
         # 准确率
         self.accuracy, self.accuracy_update = tf.metrics.accuracy(
-            labels=self.input_y, predictions=self.predictions, name="accuracy")
+            labels=tf.argmax(self.input_y, axis=1),
+            predictions=tf.argmax(self.predictions, axis=1),
+            name="accuracy")
         # add precision and recall to summary
         tf.summary.scalar('macro_precision', self.macro_precision_update)
         tf.summary.scalar('macro_recall', self.macro_recall_update)

@@ -31,7 +31,7 @@ run_longshort() {
     --max_seq_len 20
 }
 
-#run_textcnn
+run_textcnn
 #run_bilstm_att
 #run_transformer
-run_longshort
+#run_longshort

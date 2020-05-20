@@ -99,23 +99,28 @@ class PreProcessor(object):
 
     def _pre_shorttext(self, flags):
         # [texts, labels]
-        x_text, y = TFUtils.load_shorttext_data(flags.data_file, flags.cls_num)
-        y = np.array(y)
+        vocab_set, sents, labels = TFUtils.load_shorttext_data(
+            flags.data_file, flags.cls_num)
+        labels = np.array(labels)
         # 构建词表
         vocab_processor = learn.preprocessing.VocabularyProcessor(
             flags.max_seq_len, tokenizer_fn=TFUtils.tokenizer_fn)
-        x = np.array(list(vocab_processor.fit_transform(x_text)))
+        # 建立词表
+        vocab_processor.fit(list(vocab_set))
+        # 词表大小
         flags.vocab_size = len(vocab_processor.vocabulary_) + 1
+        # 转化索引
+        sids = np.array(list(vocab_processor.transform(sents)))
 
         # 随机打乱数据
         np.random.seed()
-        shuffle_indices = np.random.permutation(np.arange(len(y)))
-        x_shuffled = x[shuffle_indices]
-        y_shuffled = y[shuffle_indices]
+        shuffle_indices = np.random.permutation(np.arange(len(labels)))
+        x_shuffled = sids[shuffle_indices]
+        y_shuffled = labels[shuffle_indices]
 
         # 分割出训练和测试集合
         dev_sample_index = -1 * int(
-            flags.dev_sample_percentage * float(len(y)))
+            flags.dev_sample_percentage * float(len(labels)))
         x_train, x_dev = x_shuffled[:dev_sample_index], x_shuffled[
             dev_sample_index:]
         y_train, y_dev = y_shuffled[:dev_sample_index], y_shuffled[

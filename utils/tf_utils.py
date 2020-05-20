@@ -56,6 +56,49 @@ class TFUtils(object):
         return one_hot
 
     @staticmethod
+    def argindex(array):
+        for i in range(len(array)):
+            if array[i] != 0:
+                return i
+        return 0
+
+    @staticmethod
+    def classification_report(labels, preds, cls_num):
+        '''分类结果报告
+        '''
+        correct_all = 0
+        count_all = len(labels)
+        precision_dict = {}
+        recall_dict = {}
+        for i in range(cls_num):
+            recall_dict[i] = [0., 0.000001]
+            precision_dict[i] = [0., 0.000001]
+        for i in range(len(labels)):
+            l_id = TFUtils.argindex(labels[i])
+            p_id = TFUtils.argindex(preds[i])
+            recall_dict[l_id][1] += 1.0
+            precision_dict[p_id][1] += 1.0
+            if p_id == l_id:
+                recall_dict[l_id][0] += 1.0
+                precision_dict[p_id][0] += 1.0
+                correct_all += 1.0
+        acc = correct_all / count_all
+        logging.info("count: " + str(count_all))
+        logging.info("acc: " + str(acc))
+        macro_avg_p = 0.0
+        for i in range(cls_num):
+            p = precision_dict[i][0] / precision_dict[i][1]
+            r = recall_dict[i][0] / recall_dict[i][1]
+            logging.info("cls" + str(i) + ", precision: " + str(p) +
+                         ", recall: " + str(r))
+            logging.info("cls" + str(i) + ", correct: " +
+                         str(precision_dict[i][0]) + ", all: " +
+                         str(precision_dict[i][1]))
+            macro_avg_p += p
+        macro_avg_p /= cls_num
+        logging.info("macro_avg_p: " + str(macro_avg_p))
+
+    @staticmethod
     def get_sequence_lens(sequences):
         '''获取一个batch中序列的真实长度，提供给bilstm加速
 
@@ -101,8 +144,8 @@ class TFUtils(object):
         return text
 
     @staticmethod
-    def load_shorttext_data(shorttext_file, encoding='utf-8'):
-        '''加载正负样本，样本每行为分词后的句子。
+    def load_shorttext_data(shorttext_file, cls_num, encoding='utf-8'):
+        '''短文本单句类型加载，样本每行为分词后的句子。
 
         Returns:
             输出vocab_set, texts, labels
@@ -126,7 +169,7 @@ class TFUtils(object):
     def load_longtext_with_title_data(longtext_file,
                                       cls_num,
                                       encoding='utf-8'):
-        '''输入[1(class), title, content]
+        '''长文本带title类型数据加载
 
         Returns:
             输出vocab_set, titles, contents, labels
