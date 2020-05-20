@@ -18,7 +18,12 @@ class InitProcessor(object):
     def execute(self, params):
         '''初始化参数，使用tf的flags定义
         '''
+        # 获取参数
         flags = params["FLAGS"]
-        # TODO: do something to flags
+        # AdamW: 不需要L2正则，优化器直接会做Weight Decay
+        if flags.opt == "adamw":
+            flags.l2_reg_lambda = 0.0
+            logging.info(
+                "Adam/AdamW optimizer, then l2_reg_lambda reset to 0.0")
 
         return flags

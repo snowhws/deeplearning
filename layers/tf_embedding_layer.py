@@ -13,6 +13,8 @@ class TFEmbeddingLayer(TFBaseLayer):
                  input_x,
                  vocab_size,
                  emb_size,
+                 keep_prob,
+                 training,
                  pretrain_word_vecs=None,
                  word_emb_trainable=True,
                  scope="word_embedding"):
@@ -29,6 +31,8 @@ class TFEmbeddingLayer(TFBaseLayer):
         self.input_x = input_x
         self.vocab_size = vocab_size
         self.emb_size = emb_size
+        self.keep_prob = keep_prob
+        self.training = training
         self.pretrain_word_vecs = pretrain_word_vecs
         self.word_emb_trainable = word_emb_trainable
         self.scope = scope
@@ -58,5 +62,9 @@ class TFEmbeddingLayer(TFBaseLayer):
             # 查询词嵌入矩阵
             # 将输入词索引转成词向量
             output = tf.nn.embedding_lookup(embedding, self.input_x)
+            # dropout
+            # output = tf.layers.dropout(output,
+            #                           1. - self.keep_prob,
+            #                           training=self.training)
 
             return output

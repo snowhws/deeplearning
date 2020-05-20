@@ -30,6 +30,8 @@ class TFBILSTMATTClassifier(TFBaseClassifier):
         # [B, T_w] -> [B, T, D]
         embedding_layer = TFEmbeddingLayer(self.input_x, self.flags.vocab_size,
                                            self.flags.emb_size,
+                                           self.flags.keep_prob,
+                                           self.flags.training,
                                            self.pretrain_word_vecs).build()
         # [B, T, D] -> [B, H]
         bilstmatt_layer = TFBILSTMAttLayer(embedding_layer, self.hidden_sizes,

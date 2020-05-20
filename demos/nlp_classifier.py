@@ -90,32 +90,35 @@ def get_flags():
         "num_blocks", 1, "num of blocks of Transformer Encoder(default: 1)")
 
     # 训练相关参数
-    tf.flags.DEFINE_float("lr", 5e-3, "learning rate(default: 5e-3)")
-    tf.flags.DEFINE_integer("decay_steps", 100,
-                            "decay steps for learning_rate(default: 100)")
+    tf.flags.DEFINE_float("lr", 5e-4, "learning rate(default: 5e-4)")
+    tf.flags.DEFINE_integer("decay_steps", 2000,
+                            "decay steps for learning_rate(default: 2000)")
     tf.flags.DEFINE_float("decay_rate", 0.9,
                           "decay_rate for learning_rate(default: 0.9)")
-    tf.flags.DEFINE_integer("batch_size", 64, "Batch Size (default: 64)")
+    tf.flags.DEFINE_integer("num_warmup_steps", 200,
+                            "lr warmup steps(default: 200)")
+    tf.flags.DEFINE_integer("batch_size", 128, "Batch Size (default: 128)")
     tf.flags.DEFINE_integer("num_epochs", 100,
                             "Number of training epochs (default: 100)")
-    tf.flags.DEFINE_float("keep_prob", 0.1,
-                          "Dropout keep probability (default: 0.1)")
-    tf.flags.DEFINE_float("l2_reg_lambda", 3e-3,
-                          "L2 regularization lambda (default: 3e-3)")
+    tf.flags.DEFINE_float("keep_prob", 0.5,
+                          "Dropout keep probability (default: 0.5)")
+    tf.flags.DEFINE_float("l2_reg_lambda", 0.001,
+                          "L2 regularization lambda (default: 1e-3)")
+    tf.flags.DEFINE_float("weight_decay", 5e-3,
+                          "weight_decay for AdamW Optimizer(default: 5e-3)")
     tf.flags.DEFINE_integer(
         "evaluate_every", 100,
         "Evaluate model on dev set after this many steps (default: 100)")
     tf.flags.DEFINE_integer("checkpoint_every", 100,
                             "Save model after this many steps (default: 100)")
-    tf.flags.DEFINE_integer("num_checkpoints", 5,
-                            "Number of checkpoints to store (default: 5)")
-    tf.flags.DEFINE_string("opt", "adam", "Optimizer name(default: adam)")
+    tf.flags.DEFINE_integer("num_checkpoints", 10,
+                            "Number of checkpoints to store (default: 10)")
+    tf.flags.DEFINE_string("opt", "adamw", "Optimizer name(default: adam)")
     tf.flags.DEFINE_float("max_grad_norm", 5.0,
                           "Max Gradient Norm(default: 5.0)")
-    tf.flags.DEFINE_float(
-        "acc_convergence_score", 1e-4,
-        "Convergence condition by abs(current_acc - last_acc) < acc_convergence_score(default: 1e-4)"
-    )
+    tf.flags.DEFINE_boolean(
+        "use_early_stopping", True,
+        "when accuracy stops lifting in num_checkpoints(default: True)")
 
     #  设备及日志相关
     tf.flags.DEFINE_boolean(

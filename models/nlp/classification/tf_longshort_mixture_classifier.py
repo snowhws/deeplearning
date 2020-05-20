@@ -32,6 +32,8 @@ class TFLongShortMixtureClassifier(TFBaseClassifier):
         # [B, T_w] -> [B, T_w, D]
         title_embedding = TFEmbeddingLayer(self.input_x, self.flags.vocab_size,
                                            self.flags.emb_size,
+                                           self.flags.keep_prob,
+                                           self.flags.training,
                                            self.pretrain_word_vecs).build()
         # [B, T_w, D] -> [B, last_H]
         bilstmatt_layer = TFBILSTMAttLayer(title_embedding, self.hidden_sizes,
@@ -43,6 +45,8 @@ class TFLongShortMixtureClassifier(TFBaseClassifier):
         content_embedding = TFEmbeddingLayer(self.input_c,
                                              self.flags.vocab_size,
                                              self.flags.emb_size,
+                                             self.flags.keep_prob,
+                                             self.flags.training,
                                              self.pretrain_word_vecs).build()
         # [B, T_s, T_w, D] -> [B, H]
         hierarchical_layer = TFHierarchicalAttLayer(

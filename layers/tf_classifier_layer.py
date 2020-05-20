@@ -60,7 +60,7 @@ class TFClassifierLayer(TFBaseLayer):
         with tf.variable_scope(self.scope, reuse=tf.AUTO_REUSE):
             # add dropout before classify layer
             dropout_layer = tf.layers.dropout(self.in_hidden,
-                                              self.keep_prob,
+                                              1.0 - self.keep_prob,
                                               training=self.training)
             W = tf.get_variable(
                 "W",

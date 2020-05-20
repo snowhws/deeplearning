@@ -58,6 +58,8 @@ class TFBaseClassifier(object):
         self.micro_precision = None  # 微平均精确度
         self.micro_recall = None  # 微平均召回率
         self.accuracy = None  # 正确率
+        self.best_acc = 0.0  # 最佳正确率
+        self.best_acc_steps = 0  # 最佳效果对应步数
 
     def build_model(self):
         '''构建模型
@@ -71,22 +73,51 @@ class TFBaseClassifier(object):
         Returns:
             返回优化器
         '''
-        # 学习率动态衰减
-        self.dynamic_lr = tf.train.exponential_decay(
+        # 动态学习率
+        self.dynamic_lr = tf.train.polynomial_decay(
             learning_rate=self.flags.lr,
             global_step=self.global_step,
             decay_steps=self.flags.decay_steps,
-            decay_rate=self.flags.decay_rate)
+            end_learning_rate=0.0,
+            power=1.0,
+            cycle=False)
+        # warmup lr
+        if self.flags.num_warmup_steps > 0:
+            global_steps_int = tf.cast(self.global_step, tf.int32)
+            warmup_steps_int = tf.constant(self.flags.num_warmup_steps,
+                                           dtype=tf.int32)
+            global_steps_float = tf.cast(global_steps_int, tf.float32)
+            warmup_steps_float = tf.cast(warmup_steps_int, tf.float32)
+            # 暖身时学习率
+            warmup_percent_done = global_steps_float / warmup_steps_float
+            warmup_learning_rate = self.flags.lr * warmup_percent_done
+            is_warmup = tf.cast(global_steps_int < warmup_steps_int,
+                                tf.float32)
+            self.dynamic_lr = ((1.0 - is_warmup) * self.dynamic_lr +
+                               is_warmup * warmup_learning_rate)
+
+        # 根据学习率对weight_decay进行同步衰减
+        self.dynamic_weight_decay = self.dynamic_lr / self.flags.lr * self.flags.weight_decay
 
         # 优化器
         optimizer = None
 
         if self.flags.opt == "adam":
             optimizer = tf.train.AdamOptimizer(self.dynamic_lr)
+        if self.flags.opt == "adamw":
+            optimizer = tf.contrib.opt.AdamWOptimizer(
+                weight_decay=self.dynamic_weight_decay,
+                learning_rate=self.dynamic_lr)
         if self.flags.opt == "rmsprop":
             optimizer = tf.train.RMSPropOptimizer(self.dynamic_lr)
         if self.flags.opt == "sgd":
             optimizer = tf.train.GradientDescentOptimizer(self.dynamic_lr)
+        if self.flags.opt == "momentum":
+            optimizer = tf.train.MomentumOptimizer(self.dynamic_lr)
+        if self.flags.opt == "adagrad":
+            optimizer = tf.train.AdagradOptimizer(self.dynamic_lr)
+        if self.flags.opt == "adadelta":
+            optimizer = tf.train.AdadeltaOptimizer(self.dynamic_lr)
 
         return optimizer
 
@@ -200,7 +231,7 @@ class TFBaseClassifier(object):
                 self.input_y: train_tuple[2],
                 self.keep_prob: self.flags.keep_prob
             }
-        # 局部变量初始化
+        # 重置accuracy两个局部变量accuracy/count
         sess.run(tf.local_variables_initializer())
         # 运行会话
         _, step, loss, acc = sess.run(
@@ -243,8 +274,6 @@ class TFBaseClassifier(object):
         # Batch训练进度条
         b_pbar = tqdm(total=n_batches)
         b_pbar.set_description("Progress of Batches")
-        # 自动停止条件
-        last_acc = 0.0
         # 按batch训练
         idx = 0
         for batch in batches:
@@ -271,14 +300,19 @@ class TFBaseClassifier(object):
             # 评估
             if current_step % self.flags.evaluate_every == 0:
                 curr_acc = self.eval(sess, test_tuple)
-                # 不再收敛，则停止
-                if abs(curr_acc -
-                       last_acc) <= self.flags.acc_convergence_score:
-                    logging.info("Accuracy convergenced last_acc: " +
-                                 str(last_acc) + " -> curr_acc: " +
-                                 str(curr_acc) + ", Stop training!")
+                # 收敛判定: 当前效果小于历史最佳且离最佳差距num_checkpoints次迭代，则判定收敛
+                if self.flags.use_early_stopping and curr_acc < self.best_acc and (
+                        current_step - self.best_acc_steps
+                ) / self.flags.checkpoint_every >= self.flags.num_checkpoints:
+                    logging.info("Model Convergenced Best ACC: " +
+                                 str(self.best_acc) + ", model-" +
+                                 str(self.best_acc_steps) + ", Stop Training!")
                     break
-                last_acc = curr_acc
+                if curr_acc >= self.best_acc:
+                    self.best_acc = curr_acc
+                    self.best_acc_steps = current_step
+                    logging.info("Best ACC: " + str(self.best_acc) +
+                                 ", model-" + str(self.best_acc_steps))
             idx += 1
         # 进度条关闭
         b_pbar.close()
@@ -308,8 +342,7 @@ class TFBaseClassifier(object):
                 self.keep_prob: 1.0  # 评估时dropout关闭
             }
             labels = test_tuple[2]
-
-        # 局部变量初始化
+        # 重置accuracy两个局部变量accuracy/count
         sess.run(tf.local_variables_initializer())
         # 执行会话
         logging.info("\nEvaluation:")

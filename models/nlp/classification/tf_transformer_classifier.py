@@ -34,6 +34,8 @@ class TFTransformerClassifier(TFBaseClassifier):
         '''
         embedding_layer = TFEmbeddingLayer(self.input_x, self.flags.vocab_size,
                                            self.flags.emb_size,
+                                           self.flags.keep_prob,
+                                           self.flags.training,
                                            self.pretrain_word_vecs).build()
 
         # add pos encoding

@@ -42,10 +42,6 @@ class SessionProcessor(object):
                                          max_to_keep=flags.num_checkpoints)
             # 变量initial
             sess.run(tf.global_variables_initializer())
-            # 重置accuracy两个局部变量accuracy/count
-            # 会使得后续train中accuracy的统计是累加的
-            # 如果在train中按batch reset，则acc统计的是每个batch的acc
-            sess.run(tf.local_variables_initializer())
             # 训练or预测
             if flags.training:
                 model.train(sess, graph, vocab_processor, self.save_path,

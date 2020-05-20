@@ -691,3 +691,15 @@ save_models/2020-05-20_15-51-48/checkpoints/model-2300.meta
 save_models/2020-05-20_15-51-48/checkpoints/model-2400.data-00000-of-00001
 save_models/2020-05-20_15-51-48/checkpoints/model-2400.index
 save_models/2020-05-20_15-51-48/checkpoints/model-2400.meta
+save_models/2020-05-20_21-28-13/checkpoints/checkpoint
+save_models/2020-05-20_21-28-13/checkpoints/flags
+save_models/2020-05-20_21-28-13/checkpoints/model-100.data-00000-of-00001
+save_models/2020-05-20_21-28-13/checkpoints/model-100.index
+save_models/2020-05-20_21-28-13/checkpoints/model-100.meta
+save_models/2020-05-20_21-28-13/checkpoints/model-200.data-00000-of-00001
+save_models/2020-05-20_21-28-13/checkpoints/model-200.index
+save_models/2020-05-20_21-28-13/checkpoints/model-200.meta
+save_models/2020-05-20_21-28-13/checkpoints/vocab
+*.data-00000-of-00001
+save_models/2020-05-20_21-28-13/checkpoints/model-300.index
+save_models/2020-05-20_21-28-13/checkpoints/model-300.meta

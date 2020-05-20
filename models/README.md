@@ -1,5 +1,11 @@
 # 模型介绍
 
+## 模型调优
+
+- [1] [TensorFlow常用优化器性能对比，以及各自优缺点](https://blog.csdn.net/zhangdongren/article/details/83417081)
+- [2] [Adam+L2问题及AdamW](https://www.lizenghai.com/archives/64931.html)
+- [3] [各类学习率设置方式介绍](https://www.cnblogs.com/chenzhen0530/p/10632937.html)
+
 ## NLP
 
 1. TextCNN模型
