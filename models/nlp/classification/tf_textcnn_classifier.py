@@ -28,12 +28,15 @@ class TFTextCNNClassifier(TFBaseClassifier):
     def build_model(self):
         '''构建模型
         '''
+        # [B, T] -> [B, T, D]
         embedding_layer = TFEmbeddingLayer(self.input_x, self.flags.vocab_size,
                                            self.flags.emb_size,
                                            self.pretrain_word_vecs).build()
+        # [B, T, D] -> [B, H]
         textcnn_layer = TFTextCNNLayer(embedding_layer, self.flags.max_seq_len,
                                        self.filter_sizes,
-                                       self.flags.num_filters).build()
+                                       self.flags.num_filters,
+                                       self.flags.training).build()
         self.probability, self.logits, self.loss = TFClassifierLayer(
             self.flags.training, textcnn_layer, self.flags.cls_num,
             self.flags.cls_type, self.input_y, self.flags.keep_prob,

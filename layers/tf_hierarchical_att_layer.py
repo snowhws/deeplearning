@@ -5,6 +5,7 @@
 import tensorflow as tf
 from utils.tf_utils import TFUtils
 from tf_base_layer import TFBaseLayer
+from tf_ln_layer import TFLNLayer
 from tf_soft_att_layer import TFSoftAttLayer
 
 
@@ -109,7 +110,9 @@ class TFHierarchicalAttLayer(TFBaseLayer):
             rnn_cell = tf.nn.rnn_cell.LSTMCell(num_units=hidden_size)
         else:
             rnn_cell = tf.nn.rnn_cell.GRUCell(num_units=hidden_size)
-
+        # LN归一
+        rnn_ln = TFLNLayer(rnn_cell).build()
+        # dropout
         rnn_with_dp = tf.nn.rnn_cell.DropoutWrapper(
-            rnn_cell, output_keep_prob=self.keep_prob)
+            rnn_ln, output_keep_prob=self.keep_prob)
         return rnn_with_dp

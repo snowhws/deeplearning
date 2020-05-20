@@ -258,13 +258,15 @@ class TFBaseClassifier(object):
                 b_pbar.set_description("Progress of Batches")
                 e_pbar.update(1)
             b_pbar.update(1)
-            # 保存模型&词表
+            # 保存模型&词表&参数
             if current_step % self.flags.checkpoint_every == 0:
                 path = self.saver.save(sess,
                                        checkpoint_prefix,
                                        global_step=current_step)
                 TFUtils.save_vocab(vocab_processor,
                                    os.path.join(checkpoint_dir, "vocab"))
+                TFUtils.save_flags(self.flags,
+                                   os.path.join(checkpoint_dir, "flags"))
                 logging.info("Saved model&vocab to {}\n".format(path))
             # 评估
             if current_step % self.flags.evaluate_every == 0:

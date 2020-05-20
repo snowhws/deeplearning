@@ -15,6 +15,7 @@ class TFTextCNNLayer(TFBaseLayer):
                  max_seq_len,
                  filter_sizes,
                  num_filters,
+                 training,
                  scope="text_cnn"):
         '''TextCNN初始化
 
@@ -32,6 +33,7 @@ class TFTextCNNLayer(TFBaseLayer):
         self.max_seq_len = max_seq_len
         self.filter_sizes = filter_sizes
         self.num_filters = num_filters
+        self.training = training
         self.scope = scope
 
     def build(self):
@@ -73,8 +75,13 @@ class TFTextCNNLayer(TFBaseLayer):
                                     strides=[1, 1, 1, 1],
                                     padding="VALID",
                                     name="conv" + str(filter_size))
+                conv = tf.add(conv, b)
+                # BN
+                bn_conv = tf.layers.batch_normalization(conv,
+                                                        training=self.training,
+                                                        name="BN")
                 # 非线性变换隐层
-                hidden = tf.nn.relu(tf.add(conv, b), name="relu")
+                hidden = tf.nn.relu(bn_conv, name="relu")
                 # 最大池化
                 pooled = tf.nn.max_pool(
                     hidden,

@@ -71,6 +71,7 @@ class TFClassifierLayer(TFBaseLayer):
                                 initializer=tf.constant_initializer(0.1))
             # logits
             self.logits = tf.nn.xw_plus_b(dropout_layer, W, b, name="logits")
+            # softmax or sigmoid
             if self.cls_type == "multi-label":
                 probability = tf.nn.sigmoid(self.logits)
             else:

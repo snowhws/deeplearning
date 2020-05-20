@@ -124,6 +124,15 @@ class TFUtils(object):
         fw.close()
 
     @staticmethod
+    def save_flags(flags, path):
+        '''保存所有参数
+        '''
+        fw = open(path, "w")
+        for key in flags.flag_values_dict():
+            fw.write(key + ": " + str(flags[key].value) + "\n")
+        fw.close()
+
+    @staticmethod
     def preprocess(strs, vocab_set, seg_sent=False, encoding="utf-8"):
         '''字符串预处理
         '''
