@@ -18,6 +18,15 @@ run_transformer() {
     --num_blocks 2 
 }
 
+run_han() {
+  python ./nlp_classifier.py \
+    --task_name "HierarchicalAtt" \
+    --data_type "longtext" \
+    --doc_separators "," \
+    --max_doc_len 5 \
+    --max_seq_len 15
+}
+
 run_longshort() {
   python ./nlp_classifier.py \
     --task_name "LongShortMixture" \
@@ -28,7 +37,8 @@ run_longshort() {
     --max_seq_len 20
 }
 
-run_textcnn
+#run_textcnn
 #run_bilstm_att
 #run_transformer
+run_han
 #run_longshort

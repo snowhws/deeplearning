@@ -89,6 +89,10 @@ def get_flags():
     tf.flags.DEFINE_integer(
         "num_blocks", 1, "num of blocks of Transformer Encoder(default: 1)")
 
+    # HAN模型相关参数
+    tf.flags.DEFINE_string("doc_separators", ".|。",
+                           "separators of doc(default: .|。)")
+
     # 训练相关参数
     tf.flags.DEFINE_float("lr", 5e-4, "learning rate(default: 5e-4)")
     tf.flags.DEFINE_integer("decay_steps", 2000,
@@ -104,8 +108,8 @@ def get_flags():
                           "Dropout keep probability (default: 0.5)")
     tf.flags.DEFINE_float("l2_reg_lambda", 0.001,
                           "L2 regularization lambda (default: 1e-3)")
-    tf.flags.DEFINE_float("weight_decay", 5e-3,
-                          "weight_decay for AdamW Optimizer(default: 5e-3)")
+    tf.flags.DEFINE_float("weight_decay", 1e-4,
+                          "weight_decay for AdamW Optimizer(default: 1e-4)")
     tf.flags.DEFINE_integer(
         "evaluate_every", 100,
         "Evaluate model on dev set after this many steps (default: 100)")

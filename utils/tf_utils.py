@@ -133,10 +133,17 @@ class TFUtils(object):
         fw.close()
 
     @staticmethod
-    def preprocess(strs, vocab_set, seg_sent=False, encoding="utf-8"):
+    def preprocess(strs,
+                   vocab_set,
+                   doc_separators="",
+                   seg_sent=False,
+                   encoding="utf-8"):
         '''字符串预处理
         '''
-        seg_dict = set([".", ";", "?", "？", "!", "。", "；", "！"])
+        if strs is None or strs.rstrip().strip() == "":
+            return None
+        seps = doc_separators.split("|")
+        seg_dict = set([".", ";", "?", "？", "!", "。", "；", "！"] + seps)
         text = strs.encode(encoding, "ignore").strip().rstrip().lower()
         words = text.split()
         vocab_set |= set(words)
@@ -154,51 +161,39 @@ class TFUtils(object):
         return text
 
     @staticmethod
-    def load_shorttext_data(shorttext_file, cls_num, encoding='utf-8'):
-        '''短文本单句类型加载，样本每行为分词后的句子。
-
-        Returns:
-            输出vocab_set, texts, labels
-        '''
-        # file => array
-        examples = list(
-            io.open(shorttext_file, "r", encoding=encoding).readlines())
-        # preprocess
-        vocab_set = set()
-        samples = [TFUtils.preprocess(s, vocab_set) for s in examples]
-        # labels, sents
-        labels = []
-        sents = []
-        for sample in samples:
-            label, sent = sample.split("\t")
-            labels.append(TFUtils.one_hot_emb(int(label), cls_num))
-            sents.append(sent)
-        return vocab_set, sents, labels
-
-    @staticmethod
-    def load_longtext_with_title_data(longtext_file,
-                                      cls_num,
-                                      encoding='utf-8'):
-        '''长文本带title类型数据加载
+    def load_multitype_text(data_type,
+                            data_file,
+                            cls_num,
+                            doc_separators="",
+                            encoding="utf-8"):
+        '''多种格式文本加载
 
         Returns:
             输出vocab_set, titles, contents, labels
             contents is an array [sent, ...]
         '''
         # file => array
-        samples = list(
-            io.open(longtext_file, 'r', encoding=encoding).readlines())
+        samples = list(io.open(data_file, 'r', encoding=encoding).readlines())
         # labels, titles, contents
         vocab_set = set()
         labels = []
         titles = []
         contents = []
         for sample in samples:
+            label, title, content = None, None, None
             # split sample
-            label, title, content = sample.split("\t")
+            if data_type == "shorttext":
+                label, title = sample.split("\t")
+            elif data_type == "longtext":
+                label, content = sample.split("\t")
+            elif data_type == "longtext_with_title":
+                label, title, content = sample.split("\t")
             # preprocess
             title = TFUtils.preprocess(title, vocab_set)
-            sents = TFUtils.preprocess(content, vocab_set, seg_sent=True)
+            sents = TFUtils.preprocess(content,
+                                       vocab_set,
+                                       doc_separators=doc_separators,
+                                       seg_sent=True)
             # add
             labels.append(TFUtils.one_hot_emb(int(label), cls_num))
             titles.append(title)
@@ -206,13 +201,15 @@ class TFUtils(object):
         return vocab_set, titles, contents, labels
 
     @staticmethod
-    def batch_iter(data, batch_size, num_epochs, shuffle=True):
+    def batch_iter(data_type, data, batch_size, num_epochs, shuffle=True):
         '''Generates a batch iterator for a dataset.
         '''
         # 所有数据
-        if len(data) == 2:
-            data = np.array(list(zip(data[0], data[1])))
-        elif len(data) == 3:
+        if data_type == "shorttext":
+            data = np.array(list(zip(data[0], data[2])))
+        elif data_type == "longtext":
+            data = np.array(list(zip(data[1], data[2])))
+        elif data_type == "longtext_with_title":
             data = np.array(list(zip(data[0], data[1], data[2])))
         data_size = len(data)
         # batch个数计算

@@ -32,6 +32,9 @@ class TFBaseClassifier(object):
             self.input_x = tf.placeholder(
                 tf.int32, [None, None],
                 name="input_x")  # 输入[Batch, word_id_list]
+        if flags.data_type == "longtext":
+            self.input_x = tf.placeholder(tf.int32, [None, None, None],
+                                          name="input_c")
         if flags.data_type == "longtext_with_title":  # 由句子序列组成的长文本[B, T_s, T_w]
             self.input_c = tf.placeholder(tf.int32, [None, None, None],
                                           name="input_c")
@@ -218,7 +221,7 @@ class TFBaseClassifier(object):
             返回训练记录、损失和预测结果
         '''
         feed_dict = {}
-        if self.flags.data_type == "shorttext":
+        if self.flags.data_type == "shorttext" or self.flags.data_type == "longtext":
             feed_dict = {
                 self.input_x: train_tuple[0],
                 self.input_y: train_tuple[1],
@@ -265,9 +268,10 @@ class TFBaseClassifier(object):
         if not os.path.exists(checkpoint_dir):
             os.makedirs(checkpoint_dir)
         # 生成batch, zip会将两个数组遍历打包成对元组
-        batches = TFUtils.batch_iter(train_tuple, self.flags.batch_size,
+        batches = TFUtils.batch_iter(self.flags.data_type, train_tuple,
+                                     self.flags.batch_size,
                                      self.flags.num_epochs)
-        n_batches = int((len(train_tuple[0]) - 1) / self.flags.batch_size) + 1
+        n_batches = int((len(train_tuple[-1]) - 1) / self.flags.batch_size) + 1
         # Epoch训练进度条
         e_pbar = tqdm(total=self.flags.num_epochs)
         e_pbar.set_description("Progress of Epoches")
@@ -300,10 +304,10 @@ class TFBaseClassifier(object):
             # 评估
             if current_step % self.flags.evaluate_every == 0:
                 curr_acc = self.eval(sess, test_tuple)
-                # 收敛判定: 当前效果小于历史最佳且离最佳差距num_checkpoints次迭代，则判定收敛
+                # 收敛判定: 当前效果小于历史最佳且离最佳差距num_checkpoints-1次迭代，则判定收敛
                 if self.flags.use_early_stopping and curr_acc < self.best_acc and (
                         current_step - self.best_acc_steps
-                ) / self.flags.checkpoint_every >= self.flags.num_checkpoints:
+                ) / self.flags.checkpoint_every >= self.flags.num_checkpoints - 1:
                     logging.info("Model Convergenced Best ACC: " +
                                  str(self.best_acc) + ", model-" +
                                  str(self.best_acc_steps) + ", Stop Training!")
@@ -327,7 +331,7 @@ class TFBaseClassifier(object):
         '''
         labels = None
         feed_dict = {}
-        if self.flags.data_type == "shorttext":
+        if self.flags.data_type == "shorttext" or self.flags.data_type == "longtext":
             feed_dict = {
                 self.input_x: test_tuple[0],
                 self.input_y: test_tuple[1],
