@@ -9,6 +9,8 @@ run_textcnn() {
 
 run_bilstm_att() {
   python ./nlp_classifier.py \
+    --keep_prob 0.1 \
+    --attention_size 1 \
     --task_name "BILSTMAtt"
 }
 
@@ -38,7 +40,7 @@ run_longshort() {
 }
 
 #run_textcnn
-#run_bilstm_att
+run_bilstm_att
 #run_transformer
-run_han
+#run_han
 #run_longshort

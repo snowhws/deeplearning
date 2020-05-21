@@ -35,9 +35,14 @@ class TFHierarchicalAttClassifier(TFBaseClassifier):
                                              self.pretrain_word_vecs).build()
         # [B, T_s, T_w, D] -> [B, H]
         hierarchical_layer = TFHierarchicalAttLayer(
-            content_embedding, self.flags.max_doc_len, self.flags.max_seq_len,
-            self.flags.hidden_size, self.flags.attention_size,
-            self.flags.keep_prob, self.flags.training).build()
+            content_embedding,
+            self.flags.max_doc_len,
+            self.flags.max_seq_len,
+            self.flags.hidden_size,
+            self.flags.attention_size,
+            self.flags.keep_prob,
+            self.flags.training,
+            rnn_type=self.flags.rnn_type).build()
         # -> [cls_num]
         self.probability, self.logits, self.loss = TFClassifierLayer(
             self.flags.training, hierarchical_layer, self.flags.cls_num,

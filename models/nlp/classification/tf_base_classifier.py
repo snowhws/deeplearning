@@ -329,15 +329,20 @@ class TFBaseClassifier(object):
             sess: 会话
             test_tuple: 测试样例(x, ..., y)
         '''
-        labels = None
+        labels = test_tuple[2]
         feed_dict = {}
-        if self.flags.data_type == "shorttext" or self.flags.data_type == "longtext":
+        if self.flags.data_type == "shorttext":
             feed_dict = {
                 self.input_x: test_tuple[0],
-                self.input_y: test_tuple[1],
+                self.input_y: test_tuple[2],
                 self.keep_prob: 1.0  # 评估时dropout关闭
             }
-            labels = test_tuple[1]
+        elif self.flags.data_type == "longtext":
+            feed_dict = {
+                self.input_x: test_tuple[1],
+                self.input_y: test_tuple[2],
+                self.keep_prob: 1.0  # 评估时dropout关闭
+            }
         elif self.flags.data_type == "longtext_with_title":
             feed_dict = {
                 self.input_x: test_tuple[0],
@@ -345,7 +350,6 @@ class TFBaseClassifier(object):
                 self.input_y: test_tuple[2],
                 self.keep_prob: 1.0  # 评估时dropout关闭
             }
-            labels = test_tuple[2]
         # 重置accuracy两个局部变量accuracy/count
         sess.run(tf.local_variables_initializer())
         # 执行会话

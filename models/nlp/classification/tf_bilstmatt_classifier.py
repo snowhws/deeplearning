@@ -34,10 +34,13 @@ class TFBILSTMATTClassifier(TFBaseClassifier):
                                            self.flags.training,
                                            self.pretrain_word_vecs).build()
         # [B, T, D] -> [B, H]
-        bilstmatt_layer = TFBILSTMAttLayer(embedding_layer, self.hidden_sizes,
-                                           self.flags.attention_size,
-                                           self.flags.keep_prob,
-                                           self.flags.training).build()
+        bilstmatt_layer = TFBILSTMAttLayer(
+            embedding_layer,
+            self.hidden_sizes,
+            self.flags.attention_size,
+            self.flags.keep_prob,
+            self.flags.training,
+            rnn_type=self.flags.rnn_type).build()
         self.probability, self.logits, self.loss = TFClassifierLayer(
             self.flags.training, bilstmatt_layer, self.flags.cls_num,
             self.flags.cls_type, self.input_y, self.flags.keep_prob,

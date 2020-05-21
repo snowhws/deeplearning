@@ -80,6 +80,8 @@ def get_flags():
         "hidden_sizes", "128",
         "BILSTM hidden sizes, including MultiLayers, can be 128,256,... (default: '128')"
     )
+    tf.flags.DEFINE_string("rnn_type", "GRU",
+                           "BILSTM Unit Type, e.g. GRU/LSTM(default: 'GRU')")
     tf.flags.DEFINE_integer("attention_size", 128,
                             "BILSTM-Attention size(default: 128)")
 

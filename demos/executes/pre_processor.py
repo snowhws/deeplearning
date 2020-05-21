@@ -80,10 +80,8 @@ class PreProcessor(object):
             flags.dev_sample_percentage * float(len(labels)))
         l_train, l_dev = labels_shuffled[:dev_sample_index], labels_shuffled[
             dev_sample_index:]
-        t_train = None
-        t_dev = None
-        c_train = None
-        c_dev = None
+        t_train, t_dev = None, None
+        c_train, c_dev = None, None
         if flags.data_type == "shorttext" or flags.data_type == "longtext_with_title":
             tids_shuffled = tids[shuffle_indices]
             t_train, t_dev = tids_shuffled[:dev_sample_index], tids_shuffled[
