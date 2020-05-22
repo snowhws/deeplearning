@@ -3,6 +3,7 @@
 # @Author: wensong
 
 import tensorflow as tf
+from utils.tf_utils import TFUtils
 from tf_base_layer import TFBaseLayer
 
 
@@ -15,6 +16,7 @@ class TFEmbeddingLayer(TFBaseLayer):
                  emb_size,
                  keep_prob,
                  training,
+                 zero_padding_emb=True,
                  pretrain_word_vecs=None,
                  word_emb_trainable=True,
                  scope="word_embedding"):
@@ -31,6 +33,7 @@ class TFEmbeddingLayer(TFBaseLayer):
         self.input_x = input_x
         self.vocab_size = vocab_size
         self.emb_size = emb_size
+        self.zero_padding_emb = zero_padding_emb
         self.keep_prob = keep_prob
         self.training = training
         self.pretrain_word_vecs = pretrain_word_vecs
@@ -54,6 +57,19 @@ class TFEmbeddingLayer(TFBaseLayer):
                     initializer=self.pretrain_word_vecs,
                     trainable=self.word_emb_trainable,
                     name=self.scope)
+            # PADDING部分的emb置0，且不可训练
+            elif self.zero_padding_emb:
+                padding_emb = tf.get_variable(
+                    name="padding_emb",
+                    shape=[1, self.emb_size],
+                    initializer=tf.zeros_initializer(),
+                    trainable=False)
+                word_emb = tf.get_variable(
+                    name=self.scope,
+                    shape=[self.vocab_size - 1, self.emb_size],
+                    initializer=tf.contrib.layers.xavier_initializer())
+                embedding = tf.concat([padding_emb, word_emb], axis=0)
+            # 正常随机初始化
             else:
                 embedding = tf.get_variable(
                     name=self.scope,
@@ -61,10 +77,7 @@ class TFEmbeddingLayer(TFBaseLayer):
                     initializer=tf.contrib.layers.xavier_initializer())
             # 查询词嵌入矩阵
             # 将输入词索引转成词向量
+            # [B, T_w] -> [B, T_w, D]
             output = tf.nn.embedding_lookup(embedding, self.input_x)
-            # dropout
-            # output = tf.layers.dropout(output,
-            #                           1. - self.keep_prob,
-            #                           training=self.training)
 
             return output

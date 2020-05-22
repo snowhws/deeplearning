@@ -50,7 +50,10 @@ class PreProcessor(object):
             max_document_length=flags.max_seq_len,
             min_frequency=flags.min_frequency)
         # 建立词表
-        vocab_processor.fit(list(vocab_set))
+        vocab_processor.feed(titles)
+        for sents in conts:
+            vocab_processor.feed(sents)
+        vocab_processor.build()
         # 转化索引
         tids = None
         if flags.data_type == "shorttext" or flags.data_type == "longtext_with_title":

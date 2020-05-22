@@ -32,17 +32,20 @@ class TFTransformerClassifier(TFBaseClassifier):
     def build_model(self):
         '''构建模型
         '''
-        embedding_layer = TFEmbeddingLayer(self.input_x, self.flags.vocab_size,
-                                           self.flags.emb_size,
-                                           self.flags.keep_prob,
-                                           self.flags.training,
-                                           self.pretrain_word_vecs).build()
+        embedding_layer = TFEmbeddingLayer(
+            input_x=self.input_x,
+            vocab_size=self.flags.vocab_size,
+            emb_size=self.flags.emb_size,
+            keep_prob=self.flags.keep_prob,
+            training=self.flags.training,
+            pretrain_word_vecs=self.pretrain_word_vecs).build()
 
         # add pos encoding
-        embedding_layer += TFPosEncodingLayer(embedding_layer,
-                                              self.flags.max_seq_len).build()
+        embedding_layer += TFPosEncodingLayer(
+            in_hidden=embedding_layer,
+            max_seq_len=self.flags.max_seq_len).build()
         embedding_layer = tf.layers.dropout(embedding_layer,
-                                            self.dropout_rate,
+                                            dropout_rate=self.dropout_rate,
                                             training=self.flags.training)
         # Transformer Blocks
         encoder = embedding_layer  # [B, T, D]
@@ -58,17 +61,22 @@ class TFTransformerClassifier(TFBaseClassifier):
 
                 # FFN
                 encoder = TFFeedForwardLayer(
-                    encoder,
-                    [self.flags.hidden_size, self.flags.emb_size]).build()
+                    in_hidden=encoder,
+                    num_units=[self.flags.hidden_size,
+                               self.flags.emb_size]).build()
 
         # mean or max pooling: [B, T, D] -> [B, D]
         encoder = tf.reduce_max(encoder, axis=1)
 
-        # loss
+        # [B, D] -> [B, cls_num]
         self.probability, self.logits, self.loss = TFClassifierLayer(
-            self.flags.training, encoder, self.flags.cls_num,
-            self.flags.cls_type, self.input_y, self.flags.keep_prob,
-            self.flags.l2_reg_lambda).build()
+            training=self.flags.training,
+            in_hidden=encoder,
+            cls_num=self.flags.cls_num,
+            cls_type=self.flags.cls_type,
+            input_y=self.input_y,
+            keep_prob=self.flags.keep_prob,
+            l2_reg_lambda=self.flags.l2_reg_lambda).build()
 
         # 返回模型引用
         return self

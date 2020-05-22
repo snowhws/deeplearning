@@ -28,22 +28,29 @@ class TFBILSTMATTClassifier(TFBaseClassifier):
         '''构建模型
         '''
         # [B, T_w] -> [B, T, D]
-        embedding_layer = TFEmbeddingLayer(self.input_x, self.flags.vocab_size,
-                                           self.flags.emb_size,
-                                           self.flags.keep_prob,
-                                           self.flags.training,
-                                           self.pretrain_word_vecs).build()
+        embedding_layer = TFEmbeddingLayer(
+            input_x=self.input_x,
+            vocab_size=self.flags.vocab_size,
+            emb_size=self.flags.emb_size,
+            keep_prob=self.flags.keep_prob,
+            training=self.flags.training,
+            pretrain_word_vecs=self.pretrain_word_vecs).build()
         # [B, T, D] -> [B, H]
         bilstmatt_layer = TFBILSTMAttLayer(
-            embedding_layer,
-            self.hidden_sizes,
-            self.flags.attention_size,
-            self.flags.keep_prob,
-            self.flags.training,
+            in_hidden=embedding_layer,
+            hidden_sizes=self.hidden_sizes,
+            attention_size=self.flags.attention_size,
+            keep_prob=self.flags.keep_prob,
+            training=self.flags.training,
             rnn_type=self.flags.rnn_type).build()
+        # [B, H] -> [B, cls_num]
         self.probability, self.logits, self.loss = TFClassifierLayer(
-            self.flags.training, bilstmatt_layer, self.flags.cls_num,
-            self.flags.cls_type, self.input_y, self.flags.keep_prob,
-            self.flags.l2_reg_lambda).build()
+            training=self.flags.training,
+            in_hidden=bilstmatt_layer,
+            cls_num=self.flags.cls_num,
+            cls_type=self.flags.cls_type,
+            input_y=self.input_y,
+            keep_prob=self.flags.keep_prob,
+            l2_reg_lambda=self.flags.l2_reg_lambda).build()
 
         return self

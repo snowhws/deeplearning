@@ -69,7 +69,7 @@ class TFClassifierLayer(TFBaseLayer):
             b = tf.get_variable('b',
                                 shape=[self.cls_num],
                                 initializer=tf.constant_initializer(0.1))
-            # logits
+            # logits: [B, cls_num]
             self.logits = tf.nn.xw_plus_b(dropout_layer, W, b, name="logits")
             # softmax or sigmoid
             if self.cls_type == "multi-label":

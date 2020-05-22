@@ -7,6 +7,7 @@ import sys
 import datetime
 import logging
 import tf_metrics
+import numpy as np
 from tqdm import tqdm
 from utils.tf_utils import TFUtils
 import tensorflow as tf

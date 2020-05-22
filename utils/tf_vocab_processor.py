@@ -31,7 +31,7 @@ class TFVocabProcessor(object):
         # 词表长度
         self.length = 2
         self.tokenizer_fn = tokenizer_fn
-        self.word_freq = {}
+        self.word_freq = {"__PADDING__": -1, "__UNK__": 0}
 
     def _tokenizer_fn(self, strs):
         '''按空格切分，语料需要事先处理好
@@ -42,9 +42,11 @@ class TFVocabProcessor(object):
         for line in strs:
             yield line.split()
 
-    def fit(self, strs):
-        '''生成词表
+    def feed(self, strs):
+        '''词频统计
         '''
+        if strs is None:
+            return
         # 设置切词函数
         if self.tokenizer_fn is None:
             self.tokenizer_fn = self._tokenizer_fn
@@ -55,6 +57,10 @@ class TFVocabProcessor(object):
                     self.word_freq[word] = 1
                 else:
                     self.word_freq[word] += 1
+
+    def build(self):
+        '''构造词表
+        '''
         # 按词频生成id
         for word in self.word_freq:
             if self.word_freq[word] < self.min_frequency:
@@ -84,6 +90,7 @@ class TFVocabProcessor(object):
             for i in range(0, min(len(words), self.max_document_length)):
                 if words[i] not in self.vocabulary:
                     ids[i] = self.vocabulary["__UNK__"]
+                    self.word_freq["__UNK__"] += 1
                 else:
                     ids[i] = self.vocabulary[words[i]]
             ret.append(ids)
@@ -94,5 +101,7 @@ class TFVocabProcessor(object):
         '''
         fw = open(path, "w")
         for wid in sorted(self.reverse_vocab):
-            fw.write(self.reverse_vocab[wid] + "\n")
+            word = self.reverse_vocab[wid]
+            freq = self.word_freq[word]
+            fw.write(str(wid) + "\t" + word + "\tfreq: " + str(freq) + "\n")
         fw.close()

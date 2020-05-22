@@ -79,6 +79,9 @@ class TFHierarchicalAttLayer(TFBaseLayer):
             fw_lstm_cell = self._rnn_cell(self.hidden_size)
             # backward LSTM
             bw_lstm_cell = self._rnn_cell(self.hidden_size)
+            # dynamic lens
+            seq_lens = TFUtils.get_sequence_lens(layer_hidden)
+            tf.summary.histogram(self.scope + "_seqlens", seq_lens)
             # LN归一
             ln = TFLNLayer(layer_hidden).build()
             # outputs: (output_fw, output_bw)
@@ -87,7 +90,7 @@ class TFHierarchicalAttLayer(TFBaseLayer):
                 fw_lstm_cell,
                 bw_lstm_cell,
                 ln,
-                sequence_length=TFUtils.get_sequence_lens(layer_hidden),
+                sequence_length=seq_lens,
                 dtype=tf.float32,
                 scope=self.rnn_type)
 
