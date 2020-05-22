@@ -40,7 +40,7 @@ class TFTextCNNClassifier(TFBaseClassifier):
         textcnn_layer = TFTextCNNLayer(in_hidden=embedding_layer,
                                        max_seq_len=self.flags.max_seq_len,
                                        filter_sizes=self.filter_sizes,
-                                       num_filter=self.flags.num_filters,
+                                       num_filters=self.flags.num_filters,
                                        training=self.flags.training).build()
         # [B, H] -> [B, cls_num]
         self.probability, self.logits, self.loss = TFClassifierLayer(

@@ -44,7 +44,7 @@ class TFMultiHeadAttLayer(TFBaseLayer):
         """构造多头注意力层
 
         Returns:
-            返回经过multi-head attention后的表示
+            返回经过multi-head attention后的表示，shape与queries一致
         """
         # attention维度与词向量维度一致，因为后续有res connection
         self.d_model = self.queries.get_shape().as_list()[-1]

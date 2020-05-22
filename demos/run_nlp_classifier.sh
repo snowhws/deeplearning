@@ -9,7 +9,7 @@ run_textcnn() {
 
 run_bilstm_att() {
   python ./nlp_classifier.py \
-    --keep_prob 0.1 \
+    --keep_prob 0.5 \
     --attention_size 1 \
     --min_frequency 2 \
     --task_name "BILSTMAtt"
@@ -26,6 +26,7 @@ run_han() {
     --task_name "HierarchicalAtt" \
     --data_type "longtext" \
     --doc_separators "," \
+    --min_frequency 2 \
     --max_doc_len 5 \
     --max_seq_len 15
 }
@@ -35,13 +36,14 @@ run_longshort() {
     --task_name "LongShortMixture" \
     --data_file "../corpus/nlp/chinese/news.samples" \
     --data_type "longtext_with_title" \
+    --min_frequency 2 \
     --cls_num 11 \
     --max_doc_len 10 \
     --max_seq_len 20
 }
 
 #run_textcnn
-run_bilstm_att
+#run_bilstm_att
 #run_transformer
-#run_han
+run_han
 #run_longshort

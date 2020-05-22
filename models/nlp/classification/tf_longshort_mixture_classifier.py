@@ -55,7 +55,7 @@ class TFLongShortMixtureClassifier(TFBaseClassifier):
             pretrain_word_vecs=self.pretrain_word_vecs).build()
         # [B, T_s, T_w, D] -> [B, H]
         hierarchical_layer = TFHierarchicalAttLayer(
-            in_hidden=content_embedding,
+            batched_embedded=content_embedding,
             max_doc_len=self.flags.max_doc_len,
             max_seq_len=self.flags.max_seq_len,
             hidden_size=self.flags.hidden_size,

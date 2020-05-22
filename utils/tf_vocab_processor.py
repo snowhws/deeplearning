@@ -40,7 +40,10 @@ class TFVocabProcessor(object):
             strs: 字符串数组
         '''
         for line in strs:
-            yield line.split()
+            if line is None:
+                yield []
+            else:
+                yield line.split()
 
     def feed(self, strs):
         '''词频统计
