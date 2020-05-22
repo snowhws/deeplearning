@@ -48,6 +48,10 @@ def get_flags():
     tf.flags.DEFINE_string(
         "data_type", "shorttext",
         "Data Type, shorttext/longtext_with_title(default: shorttext)")
+    tf.flags.DEFINE_integer(
+        "min_frequency", 0,
+        "Using UNK to replace low freq term, which freq <= min_frequency(default: 0)"
+    )
 
     # 分类器公共参数
     tf.flags.DEFINE_integer("cls_num", 2, "size of classes(default: 2)")

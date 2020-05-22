@@ -7,7 +7,7 @@ import sys
 sys.path.append(os.getcwd() + "/../../")
 from utils.tf_utils import TFUtils
 import tensorflow as tf
-from tensorflow.contrib import learn
+from utils.tf_vocab_processor import TFVocabProcessor
 import numpy as np
 import logging
 
@@ -46,19 +46,19 @@ class PreProcessor(object):
             flags.data_type, flags.data_file, flags.cls_num,
             flags.doc_separators)
         # 词表处理器
-        vocab_processor = learn.preprocessing.VocabularyProcessor(
+        vocab_processor = TFVocabProcessor(
             max_document_length=flags.max_seq_len,
-            tokenizer_fn=TFUtils.tokenizer_fn)
+            min_frequency=flags.min_frequency)
         # 建立词表
         vocab_processor.fit(list(vocab_set))
         # 转化索引
         tids = None
         if flags.data_type == "shorttext" or flags.data_type == "longtext_with_title":
-            tids = np.array(list(vocab_processor.transform(titles)))
+            tids = vocab_processor.transform(titles)
         cids = []
         if flags.data_type == "longtext" or flags.data_type == "longtext_with_title":
             for sents in conts:
-                sids = np.array(list(vocab_processor.transform(sents)))
+                sids = vocab_processor.transform(sents)
                 # cut & padding长文本
                 sids = TFUtils.cut_and_padding_2D(matrix=sids,
                                                   row_lens=flags.max_doc_len,
@@ -69,7 +69,7 @@ class PreProcessor(object):
         labels = np.array(labels)
         cids = np.array(cids)
         # 词表大小
-        flags.vocab_size = len(vocab_processor.vocabulary_) + 1
+        flags.vocab_size = vocab_processor.length
 
         # 随机打乱数据
         np.random.seed()

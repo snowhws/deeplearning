@@ -37,13 +37,6 @@ class TFUtils(object):
         return indices
 
     @staticmethod
-    def tokenizer_fn(strs):
-        '''按空格切分，语料需要事先处理好
-        '''
-        for line in strs:
-            yield line.split()
-
-    @staticmethod
     def one_hot_emb(idx, cls_num):
         '''生成one-hot表示的数组
         '''
@@ -115,13 +108,6 @@ class TFUtils(object):
         lens = tf.reduce_sum(used, axis=1)
 
         return tf.cast(lens, tf.int32)
-
-    @staticmethod
-    def save_vocab(vocab_processor, path):
-        fw = open(path, "w")
-        for word in vocab_processor.vocabulary_._reverse_mapping:
-            fw.write(word + "\n")
-        fw.close()
 
     @staticmethod
     def save_flags(flags, path):

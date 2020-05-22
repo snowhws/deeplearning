@@ -11,6 +11,7 @@ run_bilstm_att() {
   python ./nlp_classifier.py \
     --keep_prob 0.1 \
     --attention_size 1 \
+    --min_frequency 1 \
     --task_name "BILSTMAtt"
 }
 
