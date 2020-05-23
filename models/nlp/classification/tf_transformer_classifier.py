@@ -45,7 +45,7 @@ class TFTransformerClassifier(TFBaseClassifier):
             in_hidden=embedding_layer,
             max_seq_len=self.flags.max_seq_len).build()
         embedding_layer = tf.layers.dropout(embedding_layer,
-                                            dropout_rate=self.dropout_rate,
+                                            rate=self.dropout_rate,
                                             training=self.flags.training)
         # Transformer Blocks
         encoder = embedding_layer  # [B, T, D]
@@ -66,7 +66,7 @@ class TFTransformerClassifier(TFBaseClassifier):
                                self.flags.emb_size]).build()
 
         # mean or max pooling: [B, T, D] -> [B, D]
-        encoder = tf.reduce_max(encoder, axis=1)
+        encoder = tf.reduce_mean(encoder, axis=1)
 
         # [B, D] -> [B, cls_num]
         self.probability, self.logits, self.loss = TFClassifierLayer(

@@ -44,6 +44,6 @@ run_longshort() {
 
 #run_textcnn
 #run_bilstm_att
-#run_transformer
-run_han
+run_transformer
+#run_han
 #run_longshort
